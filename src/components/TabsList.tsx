@@ -2,13 +2,16 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { type Path, db, savePath } from "@/db/dexie";
 import { open } from "@tauri-apps/plugin-dialog";
-import { useLiveQuery } from "dexie-react-hooks";
-import { Cross, CrossIcon, Plus, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { NavLink, useNavigate } from "react-router";
+import { Separator } from "./ui/separator";
 
-export default function TabList() {
+interface Props {
+	paths: Path[];
+}
+
+export default function TabList({ paths }: Props) {
 	const navigate = useNavigate();
-	const paths = useLiveQuery(() => db.paths.toArray());
 
 	const addNewTab = async () => {
 		try {
@@ -38,40 +41,42 @@ export default function TabList() {
 	return (
 		<div className="w-screen">
 			<ScrollArea className="border-b border-border whitespace-nowrap">
-				<div className="flex items-center w-max space-x-4">
+				<div className="flex items-center gap-2 p-2 border-b">
 					{paths?.map((path: Path) => (
-						<NavLink
-							to={`/dashboard/path/${path.uuid}`}
-							key={path.uuid}
-							className={({ isActive }) =>
-								`pl-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 ${
-									isActive
-										? "border-b-2 border-blue-500 text-blue-600"
-										: "text-gray-500 hover:text-gray-700"
-								}`
-							}
-						>
-							<div className="flex items-center justify-between">
-								{path.folderName}
-								<Button
-									size={"sm"}
-									variant="ghost"
-									className="ml-4"
-									onClick={(e) => {
-										e.preventDefault();
-										e.stopPropagation();
-										closeTab(path.uuid);
-									}}
-								>
-									<X className="h-4 w-4" />
-								</Button>
-							</div>
-						</NavLink>
+						<div key={path.uuid} className="flex items-center">
+							<NavLink
+								to={`/dashboard/path/${path.uuid}`}
+								className={"flex items-center"}
+							>
+								{({ isActive }) => (
+									<>
+										<Button
+											variant="ghost"
+											className={`text-sm ${isActive ? "text-blue-500" : ""}`}
+										>
+											{path.folderName}
+										</Button>
+										<Button
+											size={"icon"}
+											variant="ghost"
+											onClick={(e) => {
+												e.preventDefault();
+												e.stopPropagation();
+												closeTab(path.uuid);
+											}}
+										>
+											<X className="h-4 w-4" />
+										</Button>
+									</>
+								)}
+							</NavLink>
+							<Separator orientation="vertical" className="h-4" />
+						</div>
 					))}
 					<Button
 						onClick={addNewTab}
 						variant="outline"
-						size="icon"
+						size="sm"
 						className="ml-2"
 						aria-label="Add new tab"
 					>
