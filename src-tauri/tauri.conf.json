@@ -30,10 +30,11 @@
 			"open": true
 		},
 		"updater": {
+			"active": true,
 			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDEyMDg1QzUwRDE2RkJBOQpSV1NwK3hZTnhZVWdBWTFvUTVYUEdNb1BKWGgrRU5pRVRQVUYwOUw4YzFSNXdjUXNwMzF5TlQ1ZQo=",
+			"dialog": true,
 			"endpoints": [
-				"https://releases.myapp.com/{{target}}/{{arch}}/{{current_version}}",
-				"https://github.com/user/repo/releases/latest/download/latest.json"
+				"https://github.com/monsieursam/gitaurora-release/releases/latest/download/tentacles_0.1.0_x64.dmg"
 			]
 		}
 	},
