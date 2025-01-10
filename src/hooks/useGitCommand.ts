@@ -189,9 +189,6 @@ export const useGitCommand = () => {
 		files: string[],
 	): Promise<void> => {
 		try {
-			console.log(directory);
-			console.log(commitMessage);
-			console.log(files);
 			await invoke("git_add_and_commit", {
 				directory,
 				commitMessage,
