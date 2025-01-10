@@ -1,6 +1,6 @@
 import type { Path } from "@/db/dexie";
 import { type FileChange, useGitCommand } from "@/hooks/useGitCommand";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { NavLink } from "react-router";
 import { Button } from "./ui/button";
 import { CardFooter } from "./ui/card";
@@ -22,15 +22,6 @@ export const CurrentChangeInterface = ({ changes, path }: Props) => {
 	const [commitMessage, setCommitMessage] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
 
-	useEffect(() => {
-		fetchChanges();
-	}, []);
-
-	const fetchChanges = async () => {
-		setSelectedFiles(changes.map((change) => change.filename));
-		handleSelectAll(true);
-	};
-
 	const handleCommit = async () => {
 		if (!commitMessage.trim()) {
 			alert("Please enter a commit message");
@@ -39,7 +30,7 @@ export const CurrentChangeInterface = ({ changes, path }: Props) => {
 
 		setIsLoading(true);
 		try {
-			commitChanges(path.path, commitMessage, selectedFiles);
+			await commitChanges(path.path, commitMessage, selectedFiles);
 			setCommitMessage("");
 		} catch (error) {
 			console.error("Failed to commit changes:", error);
@@ -47,10 +38,6 @@ export const CurrentChangeInterface = ({ changes, path }: Props) => {
 		} finally {
 			setIsLoading(false);
 		}
-	};
-
-	const handleSelectAll = (checked: boolean) => {
-		setSelectedFiles(checked ? changes.map((change) => change.filename) : []);
 	};
 
 	const handleSelectChange = (file: string, isSelected: boolean) => {
@@ -92,10 +79,7 @@ export const CurrentChangeInterface = ({ changes, path }: Props) => {
 					value={commitMessage}
 					onChange={(e) => setCommitMessage(e.target.value)}
 				/>
-				<Button
-					onClick={handleCommit}
-					disabled={isLoading || changes?.length === 0}
-				>
+				<Button onClick={handleCommit} disabled={isLoading}>
 					{isLoading ? "Committing..." : "Commit Changes"}
 				</Button>
 			</CardFooter>

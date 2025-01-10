@@ -1,7 +1,7 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+use serde::Serialize;
 use std::process::Command;
 use std::str::from_utf8;
-use serde::Serialize;
 
 #[derive(Serialize)]
 struct Branch {
@@ -11,7 +11,11 @@ struct Branch {
 }
 
 #[tauri::command]
-fn git_add_and_commit(directory: String, commit_message: String, files: Vec<String>) -> Result<(), String> {
+fn git_add_and_commit(
+    directory: String,
+    commit_message: String,
+    files: Vec<String>,
+) -> Result<(), String> {
     // Git add
     let mut add_command = Command::new("git");
     add_command.current_dir(directory.clone());
@@ -192,8 +196,7 @@ fn get_file_diffs(commit_id: &str, current_path: &str) -> Vec<GitDiff> {
         .output()
         .expect("Failed to execute git show command");
 
-    let diff_output = from_utf8(&show_command.stdout)
-        .expect("Failed to parse git output");
+    let diff_output = from_utf8(&show_command.stdout).expect("Failed to parse git output");
 
     let mut diffs = Vec::new();
     let mut current_file = String::new();
@@ -213,10 +216,7 @@ fn get_file_diffs(commit_id: &str, current_path: &str) -> Vec<GitDiff> {
             }
 
             // Extract new filename
-            current_file = line.split(" b/")
-                .last()
-                .unwrap_or("")
-                .to_string();
+            current_file = line.split(" b/").last().unwrap_or("").to_string();
             reading_diff = true;
             current_diff.push(line);
         } else if reading_diff {
@@ -246,8 +246,7 @@ fn get_commit_changes(current_path: String, commit_id: String) -> CommitChanges 
         .output()
         .expect("Failed to execute git command");
 
-    let commit_info_str = from_utf8(&commit_info.stdout)
-        .expect("Failed to parse commit info");
+    let commit_info_str = from_utf8(&commit_info.stdout).expect("Failed to parse commit info");
     let mut commit_info_lines = commit_info_str.lines();
 
     // Parse commit details
@@ -285,8 +284,7 @@ fn get_current_change_by_filename(current_path: String, filename: String) -> Cha
         .output()
         .expect("Failed to execute git command");
 
-    let diff_str = from_utf8(&diff.stdout)
-        .expect("Failed to parse diff");
+    let diff_str = from_utf8(&diff.stdout).expect("Failed to parse diff");
 
     // Extract only the actual changes (starting from @@)
     let cleaned_diff = diff_str
@@ -312,8 +310,8 @@ fn get_current_changes_file_status(current_path: String) -> Vec<Change> {
         .output()
         .expect("Failed to execute git command");
 
-    let changed_files_str = from_utf8(&changed_files.stdout)
-        .expect("Failed to parse changed files");
+    let changed_files_str =
+        from_utf8(&changed_files.stdout).expect("Failed to parse changed files");
 
     // Process each changed file
     let mut changes = Vec::new();
@@ -357,8 +355,8 @@ fn get_current_changes_status(current_path: String) -> Vec<Change> {
         .output()
         .expect("Failed to execute git command");
 
-    let changed_files_str = from_utf8(&changed_files.stdout)
-        .expect("Failed to parse changed files");
+    let changed_files_str =
+        from_utf8(&changed_files.stdout).expect("Failed to parse changed files");
 
     // Process each changed file
     let mut changes = Vec::new();
@@ -391,14 +389,10 @@ fn get_current_changes_status(current_path: String) -> Vec<Change> {
                 .output()
                 .expect("Failed to execute git command");
 
-            let diff_str = from_utf8(&diff.stdout)
-                .expect("Failed to parse diff");
+            let diff_str = from_utf8(&diff.stdout).expect("Failed to parse diff");
 
             // Extract only the actual changes (starting from @@)
-            let cleaned_diff = diff_str
-                .lines()
-                .collect::<Vec<&str>>()
-                .join("\n");
+            let cleaned_diff = diff_str.lines().collect::<Vec<&str>>().join("\n");
 
             changes.push(Change {
                 filename: filename.to_string(),
@@ -413,14 +407,10 @@ fn get_current_changes_status(current_path: String) -> Vec<Change> {
                 .output()
                 .expect("Failed to execute git command");
 
-            let diff_str = from_utf8(&diff.stdout)
-                .expect("Failed to parse diff");
+            let diff_str = from_utf8(&diff.stdout).expect("Failed to parse diff");
 
             // Extract only the actual changes (starting from @@)
-            let cleaned_diff = diff_str
-                .lines()
-                .collect::<Vec<&str>>()
-                .join("\n");
+            let cleaned_diff = diff_str.lines().collect::<Vec<&str>>().join("\n");
 
             changes.push(Change {
                 filename: filename.to_string(),
@@ -443,9 +433,8 @@ fn get_current_changes(current_path: String) -> Vec<Change> {
         .output()
         .expect("Failed to execute git command");
 
-    let changed_files_str = from_utf8(&changed_files.stdout)
-        .expect("Failed to parse changed files");
-
+    let changed_files_str =
+        from_utf8(&changed_files.stdout).expect("Failed to parse changed files");
 
     // Process each changed file
     let mut changes = Vec::new();
@@ -475,8 +464,7 @@ fn get_current_changes(current_path: String) -> Vec<Change> {
             .output()
             .expect("Failed to execute git command");
 
-        let diff_str = from_utf8(&diff.stdout)
-            .expect("Failed to parse diff");
+        let diff_str = from_utf8(&diff.stdout).expect("Failed to parse diff");
 
         // Extract only the actual changes (starting from @@)
         let cleaned_diff = diff_str
@@ -505,8 +493,8 @@ fn get_staged_changes(current_path: String) -> Vec<Change> {
         .output()
         .expect("Failed to execute git command");
 
-    let changed_files_str = from_utf8(&changed_files.stdout)
-        .expect("Failed to parse changed files");
+    let changed_files_str =
+        from_utf8(&changed_files.stdout).expect("Failed to parse changed files");
 
     // Process each changed file
     let mut changes = Vec::new();
@@ -536,8 +524,7 @@ fn get_staged_changes(current_path: String) -> Vec<Change> {
             .output()
             .expect("Failed to execute git command");
 
-        let diff_str = from_utf8(&diff.stdout)
-            .expect("Failed to parse diff");
+        let diff_str = from_utf8(&diff.stdout).expect("Failed to parse diff");
 
         // Extract only the actual changes (starting from @@)
         let cleaned_diff = diff_str
@@ -591,15 +578,30 @@ fn commit_changes(current_path: String, message: String) -> String {
     message
 }
 
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![get_all_git_branches, get_all_commits_from_branch, create_new_branch, switch_branch, get_commit_changes, get_current_changes, get_staged_changes, get_current_change_by_filename, commit_changes, stage_changes, delete_branch, get_current_changes_status, get_current_changes_file_status, git_add_and_commit])
+        .invoke_handler(tauri::generate_handler![
+            get_all_git_branches,
+            get_all_commits_from_branch,
+            create_new_branch,
+            switch_branch,
+            get_commit_changes,
+            get_current_changes,
+            get_staged_changes,
+            get_current_change_by_filename,
+            commit_changes,
+            stage_changes,
+            delete_branch,
+            get_current_changes_status,
+            get_current_changes_file_status,
+            git_add_and_commit
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

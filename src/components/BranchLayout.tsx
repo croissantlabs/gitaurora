@@ -9,7 +9,6 @@ import {
 	ArrowBigUp,
 	GitPullRequest,
 	MergeIcon,
-	Send,
 } from "lucide-react";
 import { Outlet, useOutletContext, useParams } from "react-router";
 import { BranchInterface } from "./BranchInterface";
@@ -60,21 +59,7 @@ export function BranchLayout() {
 							</TooltipContent>
 						</Tooltip>
 					</TooltipProvider>
-					<TooltipProvider>
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<div>
-									<Button variant="outline" size="sm" disabled>
-										<ArrowBigUp className="mr-2 h-4 w-4" />
-										Push
-									</Button>
-								</div>
-							</TooltipTrigger>
-							<TooltipContent>
-								<p>Feature in coming</p>
-							</TooltipContent>
-						</Tooltip>
-					</TooltipProvider>
+
 					<TooltipProvider>
 						<Tooltip>
 							<TooltipTrigger asChild>
@@ -105,11 +90,26 @@ export function BranchLayout() {
 							</TooltipContent>
 						</Tooltip>
 					</TooltipProvider>
+					<TooltipProvider>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<div>
+									<Button variant="outline" size="sm" disabled>
+										<ArrowBigUp className="mr-2 h-4 w-4" />
+										Push
+									</Button>
+								</div>
+							</TooltipTrigger>
+							<TooltipContent>
+								<p>Feature in coming</p>
+							</TooltipContent>
+						</Tooltip>
+					</TooltipProvider>
 				</div>
-				<div className="flex items-center space-x-4">
+				{/* <div className="flex items-center space-x-4">
 					<span>Current Branch: main</span>
 					<span>Last Fetch: 5 minutes ago</span>
-				</div>
+				</div> */}
 			</footer>
 		</div>
 	);
