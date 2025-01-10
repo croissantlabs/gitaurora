@@ -35,8 +35,10 @@ export const CurrentChangeLayout = () => {
 	return (
 		<ResizablePanelGroup direction="horizontal">
 			<ResizablePanel className="overflow-hidden" defaultSize={25}>
-				{changes?.length && (
+				{changes?.length ? (
 					<CurrentChangeInterface changes={changes} path={path} />
+				) : (
+					<div className="p-4">No change</div>
 				)}
 			</ResizablePanel>
 			<ResizableHandle />
