@@ -32,6 +32,8 @@ export const CurrentChangeLayout = () => {
 		}
 	}, []);
 
+	console.log("yo");
+
 	return (
 		<ResizablePanelGroup direction="horizontal">
 			<ResizablePanel className="overflow-hidden" defaultSize={25}>
