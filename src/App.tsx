@@ -1,16 +1,13 @@
 import "./App.css";
-import { BranchLayoutContainer } from "@/components/BranchLayout";
-import CommitDetails, {
-	CommitDetailsContainer,
-} from "@/components/CommitDetails";
+import { BranchLayout } from "@/components/BranchLayout";
 import { ThemeProvider } from "@/components/theme-provider";
 import { RouterProvider, createBrowserRouter } from "react-router";
 import AppLayout from "./components/AppLayout";
-import { CommitHistoryContainer } from "./components/CommitHistory";
-import {
-	CurrentChange,
-	CurrentChangeContainer,
-} from "./components/CurrentChange";
+import { ChangeDiff } from "./components/ChangeDiff";
+import { CommitDetailsLayout } from "./components/CommitDetailsLayout";
+import { CommitHistoryLayout } from "./components/CommitHistoryLayout";
+import { CommitLayout } from "./components/CommitLayout";
+import { CurrentChangeLayout } from "./components/CurrentChangeLayout";
 import SelectDirectoryView from "./components/SelectDirectoryView";
 
 const router = createBrowserRouter([
@@ -24,19 +21,37 @@ const router = createBrowserRouter([
 		children: [
 			{
 				path: "path/:pathId",
-				element: <BranchLayoutContainer />,
+				element: <BranchLayout />,
 				children: [
 					{
 						path: "branch/:branchId",
-						element: <CommitHistoryContainer />,
+						element: <CommitLayout />,
 						children: [
 							{
-								path: "commit/:commitId",
-								element: <CommitDetailsContainer />,
+								path: "commits",
+								element: <CommitHistoryLayout />,
+								children: [
+									{
+										path: ":commitId",
+										element: <CommitDetailsLayout />,
+										children: [
+											{
+												path: "filename/:filenameId",
+												element: <ChangeDiff />,
+											},
+										],
+									},
+								],
 							},
 							{
 								path: "current_change",
-								element: <CurrentChangeContainer />,
+								element: <CurrentChangeLayout />,
+								children: [
+									{
+										path: "filename/:filenameId",
+										element: <ChangeDiff />,
+									},
+								],
 							},
 						],
 					},

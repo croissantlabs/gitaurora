@@ -27,10 +27,6 @@ export const useGitCommand = () => {
 				currentPath: directory,
 			});
 
-			console.log(directory);
-
-			console.log(branches);
-
 			return branches;
 		} catch (error) {
 			console.error("Error getting Git branches:", error);
@@ -77,13 +73,10 @@ export const useGitCommand = () => {
 		branchName: string,
 	): Promise<void> => {
 		try {
-			console.log("switching branch");
-
 			await invoke("switch_branch", {
 				currentPath: directory,
 				branchName,
 			});
-			console.log(directory, branchName);
 		} catch (error) {
 			console.error("Error creating Git branch:", error);
 			throw error;
@@ -124,12 +117,49 @@ export const useGitCommand = () => {
 		}
 	};
 
-	// a function to get the current change not yet committed
-	const getCurrentChange = async (directory: string): Promise<Commit> => {
+	// a function to get the current change of a file
+	const getCurrentChangeByFilename = async (
+		directory: string,
+		filename: string,
+	): Promise<FileChange> => {
 		try {
-			const change: Commit = await invoke("get_current_changes", {
+			const change: FileChange = await invoke(
+				"get_current_change_by_filename",
+				{
+					currentPath: directory,
+					filename,
+				},
+			);
+
+			return change;
+		} catch (error) {
+			console.error("Error getting current change:", error);
+			throw error;
+		}
+	};
+
+	const getCurrentChangeFile = async (
+		directory: string,
+	): Promise<FileChange[]> => {
+		try {
+			const change: FileChange[] = await invoke("get_current_changes_status", {
 				currentPath: directory,
 			});
+
+			return change;
+		} catch (error) {
+			console.error("Error getting current change:", error);
+			throw error;
+		}
+	};
+
+	const getCurrentChange = async (directory: string): Promise<FileChange[]> => {
+		try {
+			const change: FileChange[] = await invoke("get_current_changes_status", {
+				currentPath: directory,
+			});
+
+			console.log(change);
 
 			return change;
 		} catch (error) {
@@ -152,14 +182,60 @@ export const useGitCommand = () => {
 		}
 	};
 
+	// a function to commit changes
+	const commitChanges = async (
+		directory: string,
+		commitMessage: string,
+		files: string[],
+	): Promise<void> => {
+		try {
+			console.log(directory);
+			console.log(commitMessage);
+			console.log(files);
+			await invoke("git_add_and_commit", {
+				directory,
+				commitMessage,
+				files,
+			});
+		} catch (error) {
+			console.error("Error committing changes:", error);
+			throw error;
+		}
+	};
+
+	// a function to get the change of a file from a commit
+	const getChangeFromCommitByFilename = async (
+		directory: string,
+		filename: string,
+	): Promise<FileChange> => {
+		try {
+			const change: FileChange = await invoke(
+				"get_current_change_by_filename",
+				{
+					current_path: directory,
+					filename,
+				},
+			);
+
+			return change;
+		} catch (error) {
+			console.error("Error getting change from commit:", error);
+			throw error;
+		}
+	};
+
 	return {
 		getAllGitBranches,
 		getCurrentChange,
+		getCurrentChangeFile,
+		getCurrentChangeByFilename,
 		getStagedChange,
 		getAllCommitsFromBranch,
 		getChangeFromCommit,
+		getChangeFromCommitByFilename,
 		deleteBranch,
 		createBranch,
 		switchBranch,
+		commitChanges,
 	};
 };
