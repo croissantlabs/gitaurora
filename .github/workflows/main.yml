@@ -18,9 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # - platform: 'macos-latest' # for Arm based macs (M1 and above).
-          #   args: '--target aarch64-apple-darwin'
-          - platform: 'macos-latest' # for Intel based macs.
+          - platform: 'macos-latest'
             args: '--target x86_64-apple-darwin'
           - platform: 'ubuntu-22.04'
             args: ''
@@ -28,11 +26,12 @@ jobs:
             args: ''
 
     runs-on: ${{ matrix.platform }}
+
     steps:
       - uses: actions/checkout@v4
 
       - name: install dependencies (ubuntu only)
-        if: matrix.platform == 'ubuntu-22.04' # This must match the platform value defined above.
+        if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
@@ -41,12 +40,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
-          cache: 'npm' # Set this to npm, yarn or pnpm.
+          cache: 'npm'
 
       - name: install Rust stable
-        uses: dtolnay/rust-toolchain@stable # Set this to dtolnay/rust-toolchain@nightly
+        uses: dtolnay/rust-toolchain@stable
         with:
-          # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
       - name: Rust cache
@@ -55,8 +53,7 @@ jobs:
           workspaces: './src-tauri -> target'
 
       - name: install frontend dependencies
-        # If you don't have `beforeBuildCommand` configured you may want to build your frontend here too.
-        run: npm install # change this to npm or pnpm depending on which one you use.
+        run: npm install
 
       - uses: tauri-apps/tauri-action@v0
         env:
@@ -65,31 +62,40 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
         with:
-          tagName: app-v__VERSION__ # the action automatically replaces __VERSION__ with the app version.
+          tagName: app-v__VERSION__
           releaseName: 'App v__VERSION__'
           releaseBody: 'See the assets to download this version and install.'
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
 
-      # Publish artifacts to the public repository
-      - name: Publish artifacts to public repo
-        if: always() # Ensure this step runs even if a build fails
-        run: |
-          # Clone the public repository
-          git clone https://github.com/monsieursam/gitaurora-release.git release-repo
-          cd release-repo
-
-          # Copy built artifacts
-          mkdir -p artifacts/${{ matrix.platform }}
-          cp ../src-tauri/target/release/bundle/*/* artifacts/${{ matrix.platform }}/
-
-          # Commit and push changes
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git add .
-          git commit -m "Add release artifacts for ${{ matrix.platform }}"
-          git push
-
+      - name: Upload Release to Public Repository
+        if: success()
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }} # Use a Personal Access Token with repo permissions
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          # Get the release assets
+          ASSETS_DIR="release-assets"
+          mkdir -p $ASSETS_DIR
+
+          # Copy the built assets to the directory
+          if [ "${{ matrix.platform }}" == "windows-latest" ]; then
+            cp src-tauri/target/release/bundle/msi/*.msi $ASSETS_DIR/
+            cp src-tauri/target/release/bundle/nsis/*.exe $ASSETS_DIR/
+          elif [ "${{ matrix.platform }}" == "macos-latest" ]; then
+            cp src-tauri/target/release/bundle/dmg/*.dmg $ASSETS_DIR/
+          elif [ "${{ matrix.platform }}" == "ubuntu-22.04" ]; then
+            cp src-tauri/target/release/bundle/deb/*.deb $ASSETS_DIR/
+            cp src-tauri/target/release/bundle/appimage/*.AppImage $ASSETS_DIR/
+          fi
+
+          # Get the version from the tag
+          VERSION=$(echo ${{ github.ref_name }} | sed 's/^v//')
+
+          # Create release in the public repository
+          gh release create "app-v${VERSION}" \
+            --repo "monsieursam/gitaurora-release" \
+            --title "App v${VERSION}" \
+            --notes "See the assets to download this version and install." \
+            --draft \
+            $ASSETS_DIR/*
