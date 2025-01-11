@@ -71,3 +71,35 @@ jobs:
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
+  publish-to-other-repo:
+    needs: publish-tauri
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current repository
+        uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+
+      - name: Setup GitHub CLI
+        uses: cli/setup-gh@v1
+
+      - name: Create release in other repository
+        env:
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+          TARGET_REPO: monsieursam/gitaurora-release
+        run: |
+          VERSION=$(grep '^version =' src-tauri/Cargo.toml | cut -d '"' -f2)
+          gh release create "v$VERSION" \
+            --repo $TARGET_REPO \
+            --title "Release v$VERSION" \
+            --notes "See the assets to download this version and install." \
+            --draft
+
+          for file in artifacts/**/*; do
+            if [ -f "$file" ]; then
+              gh release upload "v$VERSION" "$file" --repo $TARGET_REPO
+            fi
+          done
