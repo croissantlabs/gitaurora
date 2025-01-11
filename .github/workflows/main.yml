@@ -11,17 +11,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  publish-tauri:
+  build-tauri:
+    # Give this job write permissions for artifacts in your current repo only
+    # (the real release creation will happen on the other repo using PAT_TOKEN).
     permissions:
       contents: write
     strategy:
       fail-fast: false
       matrix:
         include:
-          # - platform: 'macos-latest' # for Arm based macs (M1 and above).
+          # Uncomment and set args if you want macOS builds:
+          # - platform: 'macos-latest'
           #   args: '--target aarch64-apple-darwin'
-          # - platform: 'macos-latest' # for Intel based macs.
-          #   args: '--target x86_64-apple-darwin'
           - platform: 'ubuntu-22.04'
             args: ''
           - platform: 'windows-latest'
@@ -31,22 +32,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: install dependencies (ubuntu only)
-        if: matrix.platform == 'ubuntu-22.04' # This must match the platform value defined above.
+      - name: Install dependencies (Ubuntu)
+        if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
-      - name: setup node
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
-          cache: 'npm' # Set this to npm, yarn or pnpm.
+          cache: 'npm'
 
-      - name: install Rust stable
-        uses: dtolnay/rust-toolchain@stable # Set this to dtolnay/rust-toolchain@nightly
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
         with:
-          # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
+          # Only set macOS targets if you're building on macOS.
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
       - name: Rust cache
@@ -54,20 +55,74 @@ jobs:
         with:
           workspaces: './src-tauri -> target'
 
-      - name: install frontend dependencies
-        # If you don't have `beforeBuildCommand` configured you may want to build your frontend here too.
-        run: npm install # change this to npm or pnpm depending on which one you use.
+      - name: Install frontend dependencies
+        run: npm install
 
-      - uses: tauri-apps/tauri-action@v0
+      # Use the Tauri action to build only, without creating a release in the current repo.
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
         env:
+          # GITHUB_TOKEN is still used for the build process, not for creating a release in another repo.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
         with:
-          tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
-          releaseName: 'App v__VERSION__'
-          releaseBody: 'See the assets to download this version and install.'
-          releaseDraft: true
-          prerelease: false
+          # Remove the release-related inputs so that it doesn't try to create a release here
           args: ${{ matrix.args }}
+
+      # Archive the built application artifacts so we can upload them in the next job.
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.platform }}-bundle
+          path: ./src-tauri/target/release/bundle
+          # Adjust the path above as needed for your Tauri bundler outputs.
+
+  create-release-on-other-repo:
+    # This job depends on all matrix builds from "build-tauri".
+    needs: [build-tauri]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts from all platforms
+        uses: actions/download-artifact@v3
+        with:
+          # No "name:" specified so it downloads every artifact from "build-tauri".
+          path: built-artifacts
+
+      # Create a release in the OTHER repository using the PAT_TOKEN.
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+        with:
+          # Replace with your other repo details:
+          owner: monsieursam
+          repo: gitaurora-release
+          tag_name: app-v1.0.0
+          release_name: 'App v1.0.0'
+          draft: true
+          prerelease: false
+          body: 'See the assets to download this version and install.'
+
+      # Upload artifacts from Ubuntu build
+      - name: Upload Ubuntu Release Asset
+        uses: actions/upload-release-asset@v1
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: 'built-artifacts/ubuntu-22.04-bundle/your-app-file-here'  # adjust as needed
+          asset_name: 'my-tauri-app-ubuntu.zip'
+          asset_content_type: application/zip
+
+      # Upload artifacts from Windows build
+      - name: Upload Windows Release Asset
+        uses: actions/upload-release-asset@v1
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: 'built-artifacts/windows-latest-bundle/your-app-file-here' # adjust as needed
+          asset_name: 'my-tauri-app-windows.zip'
+          asset_content_type: application/zip
