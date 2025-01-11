@@ -20,13 +20,12 @@ jobs:
         include:
           - platform: 'macos-latest'
             args: '--target x86_64-apple-darwin'
-          - platform: 'ubuntu-22.04'
-            args: ''
-          - platform: 'windows-latest'
-            args: ''
+          # - platform: 'ubuntu-22.04'
+          #   args: ''
+          # - platform: 'windows-latest'
+          #   args: ''
 
     runs-on: ${{ matrix.platform }}
-
     steps:
       - uses: actions/checkout@v4
 
@@ -69,33 +68,42 @@ jobs:
           prerelease: false
           args: ${{ matrix.args }}
 
-      - name: Upload Release to Public Repository
-        if: success()
-        env:
-          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+  publish-to-other-repo:
+    needs: publish-tauri
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source repository
+        uses: actions/checkout@v4
+
+      - name: Download release assets
+        uses: actions/download-artifact@v4
+        with:
+          name: release-assets
+          path: release-assets
+
+      - name: Checkout target repository
+        uses: actions/checkout@v4
+        with:
+          repository: monsieursam/gitaurora-release
+          token: ${{ secrets.PAT_TOKEN }}
+          path: target-repo
+
+      - name: Copy release assets
         run: |
-          # Get the release assets
-          ASSETS_DIR="release-assets"
-          mkdir -p $ASSETS_DIR
+          cp -R release-assets/* target-repo/
+          cd target-repo
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add .
+          git commit -m "Update release assets for version ${{ github.ref }}"
+          git push
 
-          # Copy the built assets to the directory
-          if [ "${{ matrix.platform }}" == "windows-latest" ]; then
-            cp src-tauri/target/release/bundle/msi/*.msi $ASSETS_DIR/
-            cp src-tauri/target/release/bundle/nsis/*.exe $ASSETS_DIR/
-          elif [ "${{ matrix.platform }}" == "macos-latest" ]; then
-            cp src-tauri/target/release/bundle/dmg/*.dmg $ASSETS_DIR/
-          elif [ "${{ matrix.platform }}" == "ubuntu-22.04" ]; then
-            cp src-tauri/target/release/bundle/deb/*.deb $ASSETS_DIR/
-            cp src-tauri/target/release/bundle/appimage/*.AppImage $ASSETS_DIR/
-          fi
-
-          # Get the version from the tag
-          VERSION=$(echo ${{ github.ref_name }} | sed 's/^v//')
-
-          # Create release in the public repository
-          gh release create "app-v${VERSION}" \
-            --repo "monsieursam/gitaurora-release" \
-            --title "App v${VERSION}" \
-            --notes "See the assets to download this version and install." \
-            --draft \
-            $ASSETS_DIR/*
+      - name: Create release in target repository
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          cd target-repo
+          gh release create "release-${{ github.ref_name }}" \
+            --title "Release ${{ github.ref_name }}" \
+            --notes "This release was automatically created by the CI workflow." \
+            ./release-assets/*
