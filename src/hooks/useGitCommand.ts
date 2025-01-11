@@ -182,6 +182,18 @@ export const useGitCommand = () => {
 		}
 	};
 
+	// a function to push the current branch
+	const pushCurrentBranch = async (directory: string): Promise<void> => {
+		try {
+			await invoke("push_current_branch", {
+				directory,
+			});
+		} catch (error) {
+			console.error("Error committing changes:", error);
+			throw error;
+		}
+	};
+
 	// a function to commit changes
 	const commitChanges = async (
 		directory: string,
@@ -234,5 +246,6 @@ export const useGitCommand = () => {
 		createBranch,
 		switchBranch,
 		commitChanges,
+		pushCurrentBranch,
 	};
 };

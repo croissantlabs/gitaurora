@@ -11,6 +11,17 @@ struct Branch {
 }
 
 #[tauri::command]
+fn push_current_branch (directory: String) -> Result<(), String> {
+    let output = Command::new("git")
+        .arg("push")
+        .current_dir(directory)
+        .output()
+        .expect("Failed to execute git command");
+
+        Ok(())
+}
+
+#[tauri::command]
 fn git_add_and_commit(
     directory: String,
     commit_message: String,
@@ -591,6 +602,7 @@ pub fn run() {
             get_all_commits_from_branch,
             create_new_branch,
             switch_branch,
+            push_current_branch,
             get_commit_changes,
             get_current_changes,
             get_staged_changes,

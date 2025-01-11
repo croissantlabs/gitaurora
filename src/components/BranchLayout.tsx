@@ -4,6 +4,7 @@ import {
 	ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import type { Path } from "@/db/dexie";
+import { useGitCommand } from "@/hooks/useGitCommand";
 import {
 	ArrowBigDown,
 	ArrowBigUp,
@@ -24,6 +25,7 @@ import {
 export function BranchLayout() {
 	const { pathId } = useParams();
 	const context = useOutletContext<Path[]>();
+	const { pushCurrentBranch } = useGitCommand();
 	const path = context.find((c) => c.uuid === pathId);
 
 	if (!path) {
@@ -94,7 +96,11 @@ export function BranchLayout() {
 						<Tooltip>
 							<TooltipTrigger asChild>
 								<div>
-									<Button variant="outline" size="sm" disabled>
+									<Button
+										variant="outline"
+										size="sm"
+										onClick={() => pushCurrentBranch(path.path)}
+									>
 										<ArrowBigUp className="mr-2 h-4 w-4" />
 										Push
 									</Button>
