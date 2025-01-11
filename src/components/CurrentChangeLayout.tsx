@@ -25,7 +25,7 @@ export const CurrentChangeLayout = () => {
 
 			fetchChanges();
 
-			const intervalId = setInterval(fetchChanges, 5000);
+			const intervalId = setInterval(fetchChanges, 2000);
 
 			return () => clearInterval(intervalId);
 			// Cleanup function to clear the interval when the component unmounts

@@ -17,9 +17,6 @@ export const ChangeDiff = () => {
 		return null;
 	}
 
-	console.log(filenameId);
-	console.log(change.diff);
-
 	const diffFile = new DiffFile("", "", "", "", [change.diff], "ts");
 	diffFile.init();
 	diffFile.buildSplitDiffLines();
