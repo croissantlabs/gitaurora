@@ -56,6 +56,9 @@ jobs:
         id: get_version
         run: echo "VERSION=$(cat package.json | jq -r .version)" >> $GITHUB_OUTPUT
 
+      - name: Create Version File
+        run: echo "${{ steps.get_version.outputs.VERSION }}" > version.txt
+
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -73,7 +76,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: version
-          path: ${{ steps.get_version.outputs.VERSION }}
+          path: version.txt
 
   create-release:
     needs: publish-tauri
@@ -86,7 +89,7 @@ jobs:
 
       - name: Read Version
         id: read_version
-        run: echo "VERSION=$(cat version)" >> $GITHUB_OUTPUT
+        run: echo "VERSION=$(cat version.txt)" >> $GITHUB_OUTPUT
 
       - name: Checkout gitaurora-release repository
         uses: actions/checkout@v4
