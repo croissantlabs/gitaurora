@@ -88,11 +88,11 @@ export const BranchInterface = ({ path }: Props) => {
 					</CardTitle>
 				</CardHeader>
 			)}
-			<ScrollArea className="h-full p-4">
+			<ScrollArea className="h-full">
 				{branches?.map((branch) => (
 					<NavLink
 						key={branch.name}
-						to={`branch/${branch.name}`}
+						to={`branch/${branch.name}/${branch.is_active ? "current_change" : "commits"}`}
 						onDoubleClick={() => checkoutBranch(branch.name)}
 					>
 						{({ isActive }) => (
