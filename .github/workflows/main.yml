@@ -50,9 +50,7 @@ jobs:
       - name: install frontend dependencies
         run: npm install
 
-      - name: Build with Tauri
-        id: tauri_build
-        uses: tauri-apps/tauri-action@v0
+      - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
@@ -66,45 +64,14 @@ jobs:
           prerelease: false
           args: ${{ matrix.args }}
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-artifacts
-          path: ${{ fromJson(steps.tauri_build.outputs.artifactPaths) }}
-
-  publish-to-other-repo:
-    needs: publish-tauri
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Get version
-        id: get_version
-        run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
-
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: release-artifacts
-          path: ./artifacts
-
-      - name: Create release in other repo
+      - name: Publish release to gitaurora-release repo
+        if: success()
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
-          gh release create "v${{ steps.get_version.outputs.VERSION }}" \
-            --repo "monsieursam/gitaurora-release" \
-            --title "GitAurora v${{ steps.get_version.outputs.VERSION }}" \
-            --notes "This is a new release of GitAurora. See the main repository for full release notes." \
-            --draft
-
-      - name: Attach artifacts to release
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
-        run: |
-          for file in ./artifacts/*; do
-            gh release upload "v${{ steps.get_version.outputs.VERSION }}" "$file" \
-              --repo "monsieursam/gitaurora-release" \
-              --clobber
-          done
+          gh release create app-vVERSION \
+            --repo monsieursam/gitaurora-release \
+            --title "App vVERSION" \
+            --notes "See the assets to download this version and install." \
+            --draft \
+            ./src-tauri/target/release/bundle/*/gitaurora*
