@@ -11,43 +11,37 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-tauri:
-    # Give this job write permissions for artifacts in your current repo only
-    # (the real release creation will happen on the other repo using PAT_TOKEN).
+  publish-tauri:
     permissions:
       contents: write
     strategy:
       fail-fast: false
       matrix:
         include:
-          # Uncomment and set args if you want macOS builds:
-          # - platform: 'macos-latest'
-          #   args: '--target aarch64-apple-darwin'
           - platform: 'ubuntu-22.04'
             args: ''
-          - platform: 'windows-latest'
-            args: ''
+          # - platform: 'windows-latest'
+          #   args: ''
 
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install dependencies (Ubuntu)
+      - name: install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
-      - name: Setup Node
+      - name: setup node
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
           cache: 'npm'
 
-      - name: Install Rust stable
+      - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
-          # Only set macOS targets if you're building on macOS.
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
       - name: Rust cache
@@ -55,74 +49,60 @@ jobs:
         with:
           workspaces: './src-tauri -> target'
 
-      - name: Install frontend dependencies
+      - name: install frontend dependencies
         run: npm install
 
-      # Use the Tauri action to build only, without creating a release in the current repo.
-      - name: Build Tauri app
-        uses: tauri-apps/tauri-action@v0
+      - uses: tauri-apps/tauri-action@v0
         env:
-          # GITHUB_TOKEN is still used for the build process, not for creating a release in another repo.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
         with:
-          # Remove the release-related inputs so that it doesn't try to create a release here
+          tagName: app-v__VERSION__
+          releaseName: 'App v__VERSION__'
+          releaseBody: 'See the assets to download this version and install.'
+          releaseDraft: true
+          prerelease: false
           args: ${{ matrix.args }}
 
-      # Archive the built application artifacts so we can upload them in the next job.
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ matrix.platform }}-bundle
-          path: ./src-tauri/target/release/bundle
-          # Adjust the path above as needed for your Tauri bundler outputs.
-
-  create-release-on-other-repo:
-    # This job depends on all matrix builds from "build-tauri".
-    needs: [build-tauri]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download artifacts from all platforms
-        uses: actions/download-artifact@v3
-        with:
-          # No "name:" specified so it downloads every artifact from "build-tauri".
-          path: built-artifacts
-
-      # Create a release in the OTHER repository using the PAT_TOKEN.
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
+      - name: Upload Release Asset
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
-        with:
-          # Replace with your other repo details:
-          owner: monsieursam
-          repo: gitaurora-release
-          tag_name: app-v1.0.0
-          release_name: 'App v1.0.0'
-          draft: true
-          prerelease: false
-          body: 'See the assets to download this version and install.'
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          REPO="monsieursam/gitaurora-release"
+          RELEASE_ID=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/$REPO/releases/tags/app-v$VERSION" | \
+            jq -r .id)
 
-      # Upload artifacts from Ubuntu build
-      - name: Upload Ubuntu Release Asset
-        uses: actions/upload-release-asset@v1
-        if: always()
+          if [ "$RELEASE_ID" = "null" ]; then
+            RELEASE_ID=$(curl -s -X POST -H "Authorization: token $GITHUB_TOKEN" \
+              -d '{"tag_name": "app-v'"$VERSION"'", "name": "App v'"$VERSION"'", "body": "Release for version '"$VERSION"'", "draft": true}' \
+              "https://api.github.com/repos/$REPO/releases" | \
+              jq -r .id)
+          fi
+
+          for file in src-tauri/target/release/bundle/*/*.{dmg,msi,deb,AppImage}; do
+            if [ -f "$file" ]; then
+              asset_name=$(basename "$file")
+              curl -s -X POST -H "Authorization: token $GITHUB_TOKEN" \
+                -H "Content-Type: application/octet-stream" \
+                --data-binary @"$file" \
+                "https://uploads.github.com/repos/$REPO/releases/$RELEASE_ID/assets?name=$asset_name"
+            fi
+          done
+
+      - name: Publish Release
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: 'built-artifacts/ubuntu-22.04-bundle/your-app-file-here'  # adjust as needed
-          asset_name: 'my-tauri-app-ubuntu.zip'
-          asset_content_type: application/zip
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          REPO="monsieursam/gitaurora-release"
+          RELEASE_ID=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/$REPO/releases/tags/app-v$VERSION" | \
+            jq -r .id)
 
-      # Upload artifacts from Windows build
-      - name: Upload Windows Release Asset
-        uses: actions/upload-release-asset@v1
-        if: always()
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: 'built-artifacts/windows-latest-bundle/your-app-file-here' # adjust as needed
-          asset_name: 'my-tauri-app-windows.zip'
-          asset_content_type: application/zip
+          curl -s -X PATCH -H "Authorization: token $GITHUB_TOKEN" \
+            -d '{"draft": false}' \
+            "https://api.github.com/repos/$REPO/releases/$RELEASE_ID"
