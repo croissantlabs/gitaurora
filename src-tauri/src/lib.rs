@@ -11,7 +11,7 @@ struct Branch {
 }
 
 #[tauri::command]
-fn push_current_branch (directory: String) -> Result<(), String> {
+async fn push_current_branch (directory: String) -> Result<(), String> {
     let output = Command::new("git")
         .arg("push")
         .current_dir(directory)
@@ -261,7 +261,7 @@ fn get_commit_changes(current_path: String, commit_id: String) -> CommitChanges 
     let mut commit_info_lines = commit_info_str.lines();
 
     // Parse commit details
-    let id = commit_info_lines.next().unwrap_or("").to_string();
+    let _id = commit_info_lines.next().unwrap_or("").to_string();
     let message = commit_info_lines.next().unwrap_or("").to_string();
     let author = commit_info_lines.next().unwrap_or("").to_string();
     let date = commit_info_lines.next().unwrap_or("").to_string();

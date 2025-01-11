@@ -1,0 +1,121 @@
+import type { Path } from "@/db/dexie";
+import { useGitCommand } from "@/hooks/useGitCommand";
+import { invoke } from "@tauri-apps/api/core";
+import {
+	ArrowBigDown,
+	ArrowBigUp,
+	GitPullRequest,
+	Loader,
+	LoaderCircle,
+	MergeIcon,
+} from "lucide-react";
+import { useState } from "react";
+import { ModeToggle } from "./mode-toggle";
+import { Button } from "./ui/button";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "./ui/tooltip";
+
+interface Props {
+	path: Path;
+}
+
+const pushCurrentBranch = async (directory: string): Promise<void> => {
+	try {
+		await invoke("push_current_branch", {
+			directory,
+		});
+	} catch (error) {
+		console.error("Error committing changes:", error);
+		throw error;
+	}
+};
+
+export const AppFooter = ({ path }: Props) => {
+	const [isLoadingPush, setIsLoadingPush] = useState(false);
+
+	const onClickButtonPush = async () => {
+		setIsLoadingPush(true);
+		await pushCurrentBranch(path.path);
+		setIsLoadingPush(false);
+	};
+
+	return (
+		<footer className="flex items-center justify-between px-4 py-1 bg-card border-t border-b border-border">
+			<div className="flex items-center justify-between w-full">
+				<div className="flex space-x-4 items-center">
+					<TooltipProvider>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={onClickButtonPush}
+									disabled={isLoadingPush}
+								>
+									{isLoadingPush ? (
+										<LoaderCircle className="animate-spin" />
+									) : (
+										<ArrowBigUp className="h-4 w-4" />
+									)}
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent>
+								<p>Push</p>
+							</TooltipContent>
+						</Tooltip>
+					</TooltipProvider>
+					<TooltipProvider>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<div>
+									<Button variant="outline" size="sm" disabled>
+										<ArrowBigDown className="h-4 w-4" />
+									</Button>
+								</div>
+							</TooltipTrigger>
+							<TooltipContent>
+								<p>Pull feature in coming</p>
+							</TooltipContent>
+						</Tooltip>
+					</TooltipProvider>
+					<TooltipProvider>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<div>
+									<Button variant="outline" size="sm" disabled>
+										<GitPullRequest className="mr-2 h-4 w-4" />
+										Create Pull Request
+									</Button>
+								</div>
+							</TooltipTrigger>
+							<TooltipContent>
+								<p>Feature in coming</p>
+							</TooltipContent>
+						</Tooltip>
+					</TooltipProvider>
+
+					<TooltipProvider>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<div>
+									<Button variant="outline" size="sm" disabled>
+										<MergeIcon className="mr-2 h-4 w-4" />
+										Merge editor
+									</Button>
+								</div>
+							</TooltipTrigger>
+							<TooltipContent>
+								<p>Feature in coming</p>
+							</TooltipContent>
+						</Tooltip>
+					</TooltipProvider>
+				</div>
+				<ModeToggle />
+			</div>
+		</footer>
+	);
+};
