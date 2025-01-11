@@ -18,13 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # - platform: 'macos-latest' # for Arm based macs (M1 and above).
-          #   args: '--target aarch64-apple-darwin'
-          # - platform: 'macos-latest' # for Intel based macs.
-          #   args: '--target x86_64-apple-darwin'
           - platform: 'ubuntu-22.04'
-            args: ''
-          - platform: 'windows-latest'
             args: ''
 
     runs-on: ${{ matrix.platform }}
@@ -32,7 +26,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: install dependencies (ubuntu only)
-        if: matrix.platform == 'ubuntu-22.04' # This must match the platform value defined above.
+        if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
@@ -41,12 +35,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
-          cache: 'npm' # Set this to npm, yarn or pnpm.
+          cache: 'npm'
 
       - name: install Rust stable
-        uses: dtolnay/rust-toolchain@stable # Set this to dtolnay/rust-toolchain@nightly
+        uses: dtolnay/rust-toolchain@stable
         with:
-          # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
       - name: Rust cache
@@ -55,51 +48,63 @@ jobs:
           workspaces: './src-tauri -> target'
 
       - name: install frontend dependencies
-        # If you don't have `beforeBuildCommand` configured you may want to build your frontend here too.
-        run: npm install # change this to npm or pnpm depending on which one you use.
+        run: npm install
 
-      - uses: tauri-apps/tauri-action@v0
+      - name: Build with Tauri
+        id: tauri_build
+        uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
         with:
-          tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
-          releaseName: 'App v__VERSION__'
+          tagName: app-vVERSION
+          releaseName: 'App vVERSION'
           releaseBody: 'See the assets to download this version and install.'
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts
+          path: ${{ fromJson(steps.tauri_build.outputs.artifactPaths) }}
+
   publish-to-other-repo:
     needs: publish-tauri
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout current repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Get version
+        id: get_version
+        run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          path: artifacts
+          name: release-artifacts
+          path: ./artifacts
 
-      - name: Setup GitHub CLI
-        uses: cli/setup-gh@v1
-
-      - name: Create release in other repository
+      - name: Create release in other repo
         env:
-          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
-          TARGET_REPO: monsieursam/gitaurora-release
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
-          VERSION=$(grep '^version =' src-tauri/Cargo.toml | cut -d '"' -f2)
-          gh release create "v$VERSION" \
-            --repo $TARGET_REPO \
-            --title "Release v$VERSION" \
-            --notes "See the assets to download this version and install." \
+          gh release create "v${{ steps.get_version.outputs.VERSION }}" \
+            --repo "monsieursam/gitaurora-release" \
+            --title "GitAurora v${{ steps.get_version.outputs.VERSION }}" \
+            --notes "This is a new release of GitAurora. See the main repository for full release notes." \
             --draft
 
-          for file in artifacts/**/*; do
-            if [ -f "$file" ]; then
-              gh release upload "v$VERSION" "$file" --repo $TARGET_REPO
-            fi
+      - name: Attach artifacts to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          for file in ./artifacts/*; do
+            gh release upload "v${{ steps.get_version.outputs.VERSION }}" "$file" \
+              --repo "monsieursam/gitaurora-release" \
+              --clobber
           done
