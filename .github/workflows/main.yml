@@ -64,7 +64,7 @@ jobs:
           tagName: app-v__VERSION__
           releaseName: 'App v__VERSION__'
           releaseBody: 'See the assets to download this version and install.'
-          releaseDraft: true
+          releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
 
@@ -74,6 +74,15 @@ jobs:
     steps:
       - name: Checkout source repository
         uses: actions/checkout@v4
+
+      - name: Wait for release to be available
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          while ! gh release view app-v__VERSION__ --repo ${{ github.repository }}; do
+            echo "Waiting for release to be available..."
+            sleep 10
+          done
 
       - name: Download release assets
         env:
