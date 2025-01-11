@@ -76,24 +76,24 @@ jobs:
           prerelease: false
           args: ${{ matrix.args }}
 
+      - name: Upload Bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundle-${{ matrix.platform }}
+          path: src-tauri/target/release/bundle
+
       - name: Upload Version
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: version
           path: version.txt
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: tauri-artifacts-${{ matrix.platform }}
-          path: src-tauri/target/release/bundle
 
   create-release:
     needs: publish-tauri
     runs-on: ubuntu-latest
     steps:
       - name: Download Version
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: version
 
@@ -101,10 +101,10 @@ jobs:
         id: read_version
         run: echo "VERSION=$(cat version.txt)" >> $GITHUB_OUTPUT
 
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
+      - name: Download All Bundles
+        uses: actions/download-artifact@v4
         with:
-          path: artifacts
+          path: bundles
 
       - name: Checkout gitaurora-release repository
         uses: actions/checkout@v4
@@ -116,16 +116,17 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
-          assets=""
-          for file in artifacts/**/*; do
-            if [ -f "$file" ]; then
-              assets="$assets --assets $file"
-            fi
-          done
-
           gh release create v${{ steps.read_version.outputs.VERSION }} \
             --repo monsieursam/gitaurora-release \
             --title "Release v${{ steps.read_version.outputs.VERSION }}" \
             --notes "This is an automated release for version ${{ steps.read_version.outputs.VERSION }}" \
-            --draft \
-            $assets
+            --draft
+
+      - name: Upload Bundles to Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          for bundle in bundles/bundle-*/; do
+            gh release upload v${{ steps.read_version.outputs.VERSION }} $bundle/* \
+              --repo monsieursam/gitaurora-release
+          done
