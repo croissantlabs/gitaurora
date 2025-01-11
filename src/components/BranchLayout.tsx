@@ -46,6 +46,29 @@ export function BranchLayout() {
 			<footer className="flex items-center justify-between p-4 bg-card border-t border-border">
 				<div className="flex items-center space-x-4">
 					<ModeToggle />
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => pushCurrentBranch(path.path)}
+					>
+						<ArrowBigUp className="mr-2 h-4 w-4" />
+						Push
+					</Button>
+					<TooltipProvider>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<div>
+									<Button variant="outline" size="sm" disabled>
+										<ArrowBigDown className="mr-2 h-4 w-4" />
+										Pull
+									</Button>
+								</div>
+							</TooltipTrigger>
+							<TooltipContent>
+								<p>Feature in coming</p>
+							</TooltipContent>
+						</Tooltip>
+					</TooltipProvider>
 					<TooltipProvider>
 						<Tooltip>
 							<TooltipTrigger asChild>
@@ -69,40 +92,6 @@ export function BranchLayout() {
 									<Button variant="outline" size="sm" disabled>
 										<MergeIcon className="mr-2 h-4 w-4" />
 										Merge editor
-									</Button>
-								</div>
-							</TooltipTrigger>
-							<TooltipContent>
-								<p>Feature in coming</p>
-							</TooltipContent>
-						</Tooltip>
-					</TooltipProvider>
-					<TooltipProvider>
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<div>
-									<Button variant="outline" size="sm" disabled>
-										<ArrowBigDown className="mr-2 h-4 w-4" />
-										Pull
-									</Button>
-								</div>
-							</TooltipTrigger>
-							<TooltipContent>
-								<p>Feature in coming</p>
-							</TooltipContent>
-						</Tooltip>
-					</TooltipProvider>
-					<TooltipProvider>
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<div>
-									<Button
-										variant="outline"
-										size="sm"
-										onClick={() => pushCurrentBranch(path.path)}
-									>
-										<ArrowBigUp className="mr-2 h-4 w-4" />
-										Push
 									</Button>
 								</div>
 							</TooltipTrigger>
