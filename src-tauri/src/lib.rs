@@ -22,7 +22,7 @@ async fn push_current_branch (directory: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn git_add_and_commit(
+async fn git_add_and_commit(
     directory: String,
     commit_message: String,
     files: Vec<String>,
@@ -57,7 +57,7 @@ fn git_add_and_commit(
 }
 
 #[tauri::command]
-fn get_all_git_branches(current_path: String) -> Vec<Branch> {
+async fn get_all_git_branches(current_path: String) -> Vec<Branch> {
     let output = Command::new("git")
         .arg("branch")
         .current_dir(current_path)
@@ -111,7 +111,7 @@ struct CommitChanges {
 }
 
 #[tauri::command]
-fn get_all_commits_from_branch(current_path: String, branch_name: String) -> Vec<Commit> {
+async fn get_all_commits_from_branch(current_path: String, branch_name: String) -> Vec<Commit> {
     let output = Command::new("git")
         .arg("log")
         .arg("--pretty=format:%h|%an|%ar|%s")
@@ -143,7 +143,7 @@ fn get_all_commits_from_branch(current_path: String, branch_name: String) -> Vec
 
 // a function to create a new branch
 #[tauri::command]
-fn create_new_branch(current_path: String, branch_name: String) -> String {
+async fn create_new_branch(current_path: String, branch_name: String) -> String {
     let output = Command::new("git")
         .arg("checkout")
         .arg("-b")
@@ -161,7 +161,7 @@ fn create_new_branch(current_path: String, branch_name: String) -> String {
 
 // a function to switch to a branch
 #[tauri::command]
-fn switch_branch(current_path: String, branch_name: String) -> String {
+async fn switch_branch(current_path: String, branch_name: String) -> String {
     let output = Command::new("git")
         .arg("checkout")
         .arg(&branch_name)
@@ -178,7 +178,7 @@ fn switch_branch(current_path: String, branch_name: String) -> String {
 
 // a function to delete a branch
 #[tauri::command]
-fn delete_branch(current_path: String, branch_name: String) -> String {
+async fn delete_branch(current_path: String, branch_name: String) -> String {
     let output = Command::new("git")
         .arg("branch")
         .arg("-d")
@@ -249,7 +249,7 @@ fn get_file_diffs(commit_id: &str, current_path: &str) -> Vec<GitDiff> {
 
 // a function to get the changes in a commit with type CommitChanges
 #[tauri::command]
-fn get_commit_changes(current_path: String, commit_id: String) -> CommitChanges {
+async fn get_commit_changes(current_path: String, commit_id: String) -> CommitChanges {
     // Get commit details
     let commit_info = Command::new("git")
         .current_dir(&current_path)
@@ -287,7 +287,7 @@ fn get_commit_changes(current_path: String, commit_id: String) -> CommitChanges 
 
 // a function to get the current change of a file
 #[tauri::command]
-fn get_current_change_by_filename(current_path: String, filename: String) -> Change {
+async fn get_current_change_by_filename(current_path: String, filename: String) -> Change {
     // Get diff for the file with unified format
     let diff = Command::new("git")
         .current_dir(&current_path)
@@ -313,7 +313,7 @@ fn get_current_change_by_filename(current_path: String, filename: String) -> Cha
 
 // a function to get all the current files, the status of the files without the diff
 #[tauri::command]
-fn get_current_changes_file_status(current_path: String) -> Vec<Change> {
+async fn get_current_changes_file_status(current_path: String) -> Vec<Change> {
     // Get changed files
     let changed_files = Command::new("git")
         .current_dir(&current_path)
@@ -358,7 +358,7 @@ fn get_current_changes_file_status(current_path: String) -> Vec<Change> {
 
 // a function to do exactly the same as get_current_changes but with the command git status
 #[tauri::command]
-fn get_current_changes_status(current_path: String) -> Vec<Change> {
+async fn get_current_changes_status(current_path: String) -> Vec<Change> {
     // Get changed files
     let changed_files = Command::new("git")
         .current_dir(&current_path)
@@ -436,7 +436,7 @@ fn get_current_changes_status(current_path: String) -> Vec<Change> {
 
 // a function to get all the current changes not committed
 #[tauri::command]
-fn get_current_changes(current_path: String) -> Vec<Change> {
+async fn get_current_changes(current_path: String) -> Vec<Change> {
     // Get changed files
     let changed_files = Command::new("git")
         .current_dir(&current_path)
@@ -496,7 +496,7 @@ fn get_current_changes(current_path: String) -> Vec<Change> {
 
 // a function to get all the current changes staged
 #[tauri::command]
-fn get_staged_changes(current_path: String) -> Vec<Change> {
+async fn get_staged_changes(current_path: String) -> Vec<Change> {
     // Get changed files
     let changed_files = Command::new("git")
         .current_dir(&current_path)
@@ -556,7 +556,7 @@ fn get_staged_changes(current_path: String) -> Vec<Change> {
 
 // a function to stage the changes
 #[tauri::command]
-fn stage_changes(current_path: String, files: Vec<String>) -> String {
+async fn stage_changes(current_path: String, files: Vec<String>) -> String {
     let output = Command::new("git")
         .arg("add")
         .args(&files)
@@ -573,7 +573,7 @@ fn stage_changes(current_path: String, files: Vec<String>) -> String {
 
 // a function to commit the changes
 #[tauri::command]
-fn commit_changes(current_path: String, message: String) -> String {
+async fn commit_changes(current_path: String, message: String) -> String {
     let output = Command::new("git")
         .arg("commit")
         .arg("-m")
