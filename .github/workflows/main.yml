@@ -80,6 +80,7 @@ jobs:
         with:
           name: release-assets
           path: release-assets
+          run-id: ${{ github.event.workflow_run.id }}
 
       - name: Checkout target repository
         uses: actions/checkout@v4
