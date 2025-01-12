@@ -39,7 +39,7 @@ export const ChangeDiff = () => {
 
 	return (
 		<ScrollArea className="h-full">
-			<div className="flex items-center justify-between bg-muted/50">
+			<div className="flex items-center justify-between bg-muted/50 px-2">
 				<div className="flex items-center gap-2">
 					<File className="h-4 w-4" />
 					<h2 className="text-sm font-medium">{change?.filename}</h2>
