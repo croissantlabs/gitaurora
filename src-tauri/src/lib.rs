@@ -22,6 +22,28 @@ async fn push_current_branch (directory: String) -> Result<(), String> {
 }
 
 #[tauri::command]
+async fn fetch (directory: String) -> Result<(), String> {
+    let output = Command::new("git")
+        .arg("fetch")
+        .current_dir(directory)
+        .output()
+        .expect("Failed to execute git command");
+
+        Ok(())
+}
+
+#[tauri::command]
+async fn pull (directory: String) -> Result<(), String> {
+    let output = Command::new("git")
+        .args(["pull", "--rebase"])
+        .current_dir(directory)
+        .output()
+        .expect("Failed to execute git command");
+
+        Ok(())
+}
+
+#[tauri::command]
 async fn git_add_and_commit(
     directory: String,
     commit_message: String,
@@ -612,7 +634,9 @@ pub fn run() {
             delete_branch,
             get_current_changes_status,
             get_current_changes_file_status,
-            git_add_and_commit
+            git_add_and_commit,
+            fetch,
+            pull
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

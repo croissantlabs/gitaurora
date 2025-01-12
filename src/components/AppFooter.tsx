@@ -5,6 +5,7 @@ import {
 	ArrowBigUp,
 	GitPullRequest,
 	LoaderCircle,
+	LoaderPinwheel,
 	MergeIcon,
 } from "lucide-react";
 import { useState } from "react";
@@ -32,13 +33,49 @@ const pushCurrentBranch = async (directory: string): Promise<void> => {
 	}
 };
 
+const fetch = async (directory: string): Promise<void> => {
+	try {
+		await invoke("fetch", {
+			directory,
+		});
+	} catch (error) {
+		console.error("Error committing changes:", error);
+		throw error;
+	}
+};
+
+const pull = async (directory: string): Promise<void> => {
+	try {
+		await invoke("pull", {
+			directory,
+		});
+	} catch (error) {
+		console.error("Error committing changes:", error);
+		throw error;
+	}
+};
+
 export const AppFooter = ({ path }: Props) => {
 	const [isLoadingPush, setIsLoadingPush] = useState(false);
+	const [isLoadingFetch, setIsLoadingFetch] = useState(false);
+	const [isLoadingPull, setIsLoadingPull] = useState(false);
 
 	const onClickButtonPush = async () => {
 		setIsLoadingPush(true);
 		await pushCurrentBranch(path.path);
 		setIsLoadingPush(false);
+	};
+
+	const onClickButtonFetch = async () => {
+		setIsLoadingFetch(true);
+		await fetch(path.path);
+		setIsLoadingFetch(false);
+	};
+
+	const onClickButtonPull = async () => {
+		setIsLoadingPull(true);
+		await pull(path.path);
+		setIsLoadingPull(false);
 	};
 
 	return (
@@ -70,13 +107,17 @@ export const AppFooter = ({ path }: Props) => {
 						<Tooltip>
 							<TooltipTrigger asChild>
 								<div>
-									<Button variant="outline" size="sm" disabled>
+									<Button
+										variant="outline"
+										size="sm"
+										onClick={onClickButtonPull}
+									>
 										<ArrowBigDown className="h-4 w-4" />
 									</Button>
 								</div>
 							</TooltipTrigger>
 							<TooltipContent>
-								<p>Pull feature in coming</p>
+								<p>Pull --rebase</p>
 							</TooltipContent>
 						</Tooltip>
 					</TooltipProvider>
@@ -112,7 +153,27 @@ export const AppFooter = ({ path }: Props) => {
 						</Tooltip>
 					</TooltipProvider>
 				</div>
-				<ModeToggle />
+				<div className="flex space-x-4">
+					<TooltipProvider>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={onClickButtonFetch}
+								>
+									<LoaderPinwheel
+										className={`h-4 w-4 ${isLoadingFetch ? "animate-spin" : ""}`}
+									/>
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent>
+								<p>Fetch</p>
+							</TooltipContent>
+						</Tooltip>
+					</TooltipProvider>
+					<ModeToggle />
+				</div>
 			</div>
 		</footer>
 	);
