@@ -35,7 +35,7 @@ export const CommitHistoryLayout = () => {
 		<ResizablePanelGroup direction="horizontal" className="flex-1 h-auto">
 			<ResizablePanel
 				className=" border-r border-border h-full flex flex-col"
-				defaultSize={25}
+				defaultSize={20}
 			>
 				<CommitHistoryInterface commits={commits} />
 			</ResizablePanel>

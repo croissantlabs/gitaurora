@@ -1,6 +1,6 @@
 import type { Path } from "@/db/dexie";
 
-import { type FileChange, useGitCommand } from "@/hooks/useGitCommand";
+import type { FileChange } from "@/hooks/useGitCommand";
 import { useEffect, useState } from "react";
 import { Outlet, useOutletContext } from "react-router";
 import { CurrentChangeInterface } from "./CurrentChangeInterface";

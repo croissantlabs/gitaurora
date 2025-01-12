@@ -1,7 +1,7 @@
 import type { Path } from "@/db/dexie";
-import { type FileChange, useGitCommand } from "@/hooks/useGitCommand";
+import type { FileChange } from "@/hooks/useGitCommand";
 import { invoke } from "@tauri-apps/api/core";
-import { Loader2, LoaderCircle } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 import { useState } from "react";
 import { NavLink } from "react-router";
 import { Button } from "./ui/button";
@@ -63,24 +63,28 @@ export const CurrentChangeInterface = ({
 			<ScrollArea className="h-full">
 				<div className="flex flex-col p-2 gap-2">
 					{changes?.map((change, index) => (
-						<div key={change.filename} className="px-2 flex items-center gap-2">
-							<Checkbox
-								checked={selectedFiles.includes(change.filename)}
-								onCheckedChange={(checked) =>
-									handleSelectChange(change.filename, checked as boolean)
-								}
-							/>
-							<NavLink to={`filename/${index}`} className={"overflow-hidden"}>
-								{({ isActive }) => (
+						<NavLink
+							to={`filename/${index}`}
+							key={change.filename}
+							className="overflow-hidden"
+						>
+							{({ isActive }) => (
+								<div className="px-2 flex items-center gap-2">
+									<Checkbox
+										checked={selectedFiles.includes(change.filename)}
+										onCheckedChange={(checked) =>
+											handleSelectChange(change.filename, checked as boolean)
+										}
+									/>
 									<Button
 										variant="ghost"
-										className={`w-full justify-start gap-2 text-sm ${isActive ? "bg-blue-400" : ""}`}
+										className={`w-full justify-start gap-2 text-sm ${isActive ? "bg-blue-500" : ""}`}
 									>
 										{change.filename}
 									</Button>
-								)}
-							</NavLink>
-						</div>
+								</div>
+							)}
+						</NavLink>
 					))}
 				</div>
 			</ScrollArea>
