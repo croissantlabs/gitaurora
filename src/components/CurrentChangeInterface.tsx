@@ -126,7 +126,11 @@ export const CurrentChangeInterface = ({
 							"Commit Changes"
 						)}
 					</Button>
-					<Button variant={"outline"} disabled={isLoadingPush}>
+					<Button
+						variant={"outline"}
+						disabled={isLoadingPush}
+						onClick={onClickButtonPush}
+					>
 						{isLoadingPush ? (
 							<LoaderCircle className="animate-spin" />
 						) : (
