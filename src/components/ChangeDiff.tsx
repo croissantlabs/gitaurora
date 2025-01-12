@@ -1,12 +1,6 @@
 import type { FileChange } from "@/hooks/useGitCommand";
 import { DiffFile, DiffModeEnum, DiffView } from "@git-diff-view/react";
-import {
-	File,
-	Settings,
-	Split,
-	SplitIcon,
-	SplitSquareHorizontal,
-} from "lucide-react";
+import { File, SplitSquareHorizontal } from "lucide-react";
 import { useOutletContext, useParams } from "react-router";
 import { ScrollArea } from "./ui/scroll-area";
 import "@git-diff-view/react/styles/diff-view.css";

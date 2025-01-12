@@ -1,7 +1,7 @@
 import type { Path } from "@/db/dexie";
-import { type FileChange, useGitCommand } from "@/hooks/useGitCommand";
+import type { FileChange } from "@/hooks/useGitCommand";
 import { invoke } from "@tauri-apps/api/core";
-import { Loader2, LoaderCircle } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 import { useState } from "react";
 import { NavLink } from "react-router";
 import { Button } from "./ui/button";
