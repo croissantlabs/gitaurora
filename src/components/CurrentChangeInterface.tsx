@@ -2,7 +2,7 @@ import { Textarea } from "@/components/ui/textarea";
 import type { Path } from "@/db/dexie";
 import type { FileChange } from "@/hooks/useGitCommand";
 import { invoke } from "@tauri-apps/api/core";
-import { LoaderCircle } from "lucide-react";
+import { ArrowBigUp, LoaderCircle } from "lucide-react";
 import { useState } from "react";
 import { NavLink } from "react-router";
 import { Button } from "./ui/button";
@@ -15,6 +15,17 @@ interface Props {
 	path: Path;
 	fetchChanges: () => void;
 }
+
+const pushCurrentBranch = async (directory: string): Promise<void> => {
+	try {
+		await invoke("push_current_branch", {
+			directory,
+		});
+	} catch (error) {
+		console.error("Error committing changes:", error);
+		throw error;
+	}
+};
 
 const commitChanges = async (
 	directory: string,
@@ -44,6 +55,7 @@ export const CurrentChangeInterface = ({
 
 	const [commitMessage, setCommitMessage] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
+	const [isLoadingPush, setIsLoadingPush] = useState(false);
 
 	const onClickButtonCommit = async () => {
 		setIsLoading(true);
@@ -51,6 +63,12 @@ export const CurrentChangeInterface = ({
 		await fetchChanges();
 		setCommitMessage("");
 		setIsLoading(false);
+	};
+
+	const onClickButtonPush = async () => {
+		setIsLoadingPush(true);
+		await pushCurrentBranch(path.path);
+		setIsLoadingPush(false);
 	};
 
 	const handleSelectChange = (file: string, isSelected: boolean) => {
@@ -96,16 +114,26 @@ export const CurrentChangeInterface = ({
 					value={commitMessage}
 					onChange={(e) => setCommitMessage(e.target.value)}
 				/>
-				<Button
-					onClick={onClickButtonCommit}
-					disabled={isLoading || !commitChanges}
-				>
-					{isLoading ? (
-						<LoaderCircle className="animate-spin" />
-					) : (
-						"Commit Changes"
-					)}
-				</Button>
+				<div className="flex items-center space-x-2">
+					<Button
+						onClick={onClickButtonCommit}
+						disabled={isLoading || !commitChanges}
+						className="flex-1"
+					>
+						{isLoading ? (
+							<LoaderCircle className="animate-spin" />
+						) : (
+							"Commit Changes"
+						)}
+					</Button>
+					<Button variant={"outline"} disabled={isLoadingPush}>
+						{isLoadingPush ? (
+							<LoaderCircle className="animate-spin" />
+						) : (
+							<ArrowBigUp />
+						)}
+					</Button>
+				</div>
 			</CardFooter>
 		</div>
 	);
