@@ -41,16 +41,18 @@ jobs:
           npm version $bump_type --no-git-tag-version
           echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
 
-          # Update Cargo.toml version to match package.json version
-          cargo_version=$(node -p "require('./package.json').version")
-          sed -i "s/^version = \".*\"/version = \"$cargo_version\"/" Cargo.toml
-          echo "Updated Cargo version to $cargo_version"
+          # Update Cargo.toml version
+          # Use `sed` to find and update the version in Cargo.toml (adjust for your specific version format)
+          sed -i 's/^version = ".*"/version = "${{ env.VERSION }}"/' Cargo.toml
+
+          # Update Cargo.lock to match the new version (if necessary)
+          cargo update
 
       - name: Commit updated version
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git add package.json package-lock.json Cargo.toml
+          git add package.json package-lock.json Cargo.toml Cargo.lock
           git commit -m "chore: bump version to ${{ env.VERSION }}"
           git push
 
