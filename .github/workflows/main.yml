@@ -137,14 +137,29 @@ jobs:
         id: get_version
         run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
-      - name: Wait for release to be available
+      - name: Wait for all releases to be available
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          while ! gh release view app-v${{ steps.get_version.outputs.VERSION }} --repo ${{ github.repository }}; do
-            echo "Waiting for release to be available..."
-            sleep 10
+          version="app-v${{ steps.get_version.outputs.VERSION }}"
+          platforms=("macos" "ubuntu" "windows")
+          missing_releases=true
+
+          # Wait for all releases to be available
+          while [ "$missing_releases" = true ]; do
+            missing_releases=false
+            for platform in "${platforms[@]}"; do
+              if ! gh release view $version-$platform --repo ${{ github.repository }} > /dev/null 2>&1; then
+                echo "Waiting for release $version-$platform..."
+                missing_releases=true
+                break
+              fi
+            done
+            if [ "$missing_releases" = true ]; then
+              sleep 10
+            fi
           done
+          echo "All releases are available."
 
       - name: Download release assets
         env:
