@@ -1,6 +1,6 @@
+import { Button } from "@/components/ui/button";
 import type { Path } from "@/db/dexie";
 import { NavLink, Outlet, useOutletContext, useParams } from "react-router";
-import { Button } from "./ui/button";
 
 export const CommitLayout = () => {
 	const path = useOutletContext<Path>();
