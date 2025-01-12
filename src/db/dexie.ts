@@ -1,11 +1,11 @@
 import Dexie from "dexie";
 import { v4 as uuidv4 } from "uuid";
 
-interface TentaclesDB extends Dexie {
+interface gitauroraDB extends Dexie {
 	paths: Dexie.Table<Path, number>;
 }
 
-const db = new Dexie("tentacles_db") as TentaclesDB;
+const db = new Dexie("gitaurora_db") as gitauroraDB;
 db.version(1.1).stores({
 	paths: "++id, uuid, path, folderName",
 });
