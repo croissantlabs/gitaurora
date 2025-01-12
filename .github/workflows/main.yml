@@ -55,6 +55,9 @@ jobs:
               repo: context.repo.repo,
               workflow_id: 'publish.yml',
               ref: 'main',
+              headers: {
+                authorization: `Bearer ${{ secrets.PAT_TOKEN }}`,
+              },
             })
 
   publish-tauri:
