@@ -1,5 +1,6 @@
 import type { Path } from "@/db/dexie";
 import { type Branch, useGitCommand } from "@/hooks/useGitCommand";
+import { invoke } from "@tauri-apps/api/core";
 import { Check, GitBranch, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router";
@@ -12,13 +13,26 @@ interface Props {
 	path: Path;
 }
 
+const getAllGitBranches = async (directory: string): Promise<Branch[]> => {
+	try {
+		const branches: Branch[] = await invoke("get_all_git_branches", {
+			currentPath: directory,
+		});
+
+		return branches;
+	} catch (error) {
+		console.error("Error getting Git branches:", error);
+		throw error;
+	}
+};
+
 export const BranchInterface = ({ path }: Props) => {
 	const navigate = useNavigate();
 	const [branches, setBranches] = useState<Branch[]>();
 	const [isCurrentlyCreatingBranch, setIsCurrentlyCreatingBranch] =
 		useState(false);
 	const [newBranchName, setNewBranchName] = useState("");
-	const { getAllGitBranches, createBranch, switchBranch } = useGitCommand();
+	const { createBranch, switchBranch } = useGitCommand();
 
 	const fetchBranches = async () => {
 		const allBranches = await getAllGitBranches(path.path);
