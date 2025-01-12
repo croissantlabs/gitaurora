@@ -53,7 +53,7 @@ jobs:
             github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              workflow_id: 'publish.yml',
+              workflow_id: 'main.yml',
               ref: 'main',
               headers: {
                 authorization: `Bearer ${{ secrets.PAT_TOKEN }}`,
