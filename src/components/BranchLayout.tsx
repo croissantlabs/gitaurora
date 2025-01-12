@@ -4,24 +4,9 @@ import {
 	ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import type { Path } from "@/db/dexie";
-import { useGitCommand } from "@/hooks/useGitCommand";
-import {
-	ArrowBigDown,
-	ArrowBigUp,
-	GitPullRequest,
-	MergeIcon,
-} from "lucide-react";
 import { Outlet, useOutletContext, useParams } from "react-router";
 import { AppFooter } from "./AppFooter";
 import { BranchInterface } from "./BranchInterface";
-import { ModeToggle } from "./mode-toggle";
-import { Button } from "./ui/button";
-import {
-	Tooltip,
-	TooltipContent,
-	TooltipProvider,
-	TooltipTrigger,
-} from "./ui/tooltip";
 
 export function BranchLayout() {
 	const { pathId } = useParams();

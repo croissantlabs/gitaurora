@@ -1,11 +1,9 @@
 import type { Path } from "@/db/dexie";
-import { useGitCommand } from "@/hooks/useGitCommand";
 import { invoke } from "@tauri-apps/api/core";
 import {
 	ArrowBigDown,
 	ArrowBigUp,
 	GitPullRequest,
-	Loader,
 	LoaderCircle,
 	MergeIcon,
 } from "lucide-react";
