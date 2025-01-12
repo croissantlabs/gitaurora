@@ -119,8 +119,8 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
         with:
-          tagName: app-v${{ steps.get_version.outputs.VERSION }}
-          releaseName: 'App v${{ steps.get_version.outputs.VERSION }}'
+          tagName: app-v__VERSION__
+          releaseName: 'App v__VERSION__'
           releaseBody: 'See the assets to download this version and install.'
           releaseDraft: false
           prerelease: false
@@ -136,30 +136,6 @@ jobs:
       - name: Get version
         id: get_version
         run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
-
-      - name: Wait for all releases to be available
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          version="app-v${{ steps.get_version.outputs.VERSION }}"
-          platforms=("macos" "ubuntu" "windows")
-          missing_releases=true
-
-          # Wait for all releases to be available
-          while [ "$missing_releases" = true ]; do
-            missing_releases=false
-            for platform in "${platforms[@]}"; do
-              if ! gh release view $version-$platform --repo ${{ github.repository }} > /dev/null 2>&1; then
-                echo "Waiting for release $version-$platform..."
-                missing_releases=true
-                break
-              fi
-            done
-            if [ "$missing_releases" = true ]; then
-              sleep 10
-            fi
-          done
-          echo "All releases are available."
 
       - name: Download release assets
         env:
