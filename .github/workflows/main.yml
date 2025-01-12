@@ -123,8 +123,8 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
         with:
-          tagName: app-${{ env.VERSION }}
-          releaseName: 'App v${{ env.VERSION }}'
+          tagName: app-v__VERSION__
+          releaseName: 'App v__VERSION__'
           releaseBody: 'See the assets to download this version and install.'
           releaseDraft: false
           prerelease: false
