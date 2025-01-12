@@ -43,7 +43,7 @@ jobs:
 
           # Update Cargo.toml version
           # Use `sed` to find and update the version in Cargo.toml (adjust for your specific version format)
-          sed -i 's/^version = ".*"/version = "${{ env.VERSION }}"/' Cargo.toml
+          sed -i 's/^version = ".*"/version = "${{ env.VERSION }}"/' src-tauri/Cargo.toml
 
           # Update Cargo.lock to match the new version (if necessary)
           cargo update
