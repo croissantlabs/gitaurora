@@ -1,3 +1,4 @@
+import { Textarea } from "@/components/ui/textarea";
 import type { Path } from "@/db/dexie";
 import type { FileChange } from "@/hooks/useGitCommand";
 import { invoke } from "@tauri-apps/api/core";
@@ -8,7 +9,6 @@ import { Button } from "./ui/button";
 import { CardFooter } from "./ui/card";
 import { Checkbox } from "./ui/checkbox";
 import { ScrollArea } from "./ui/scroll-area";
-import { Textarea } from "./ui/textarea";
 
 interface Props {
 	changes: FileChange[];
@@ -49,6 +49,7 @@ export const CurrentChangeInterface = ({
 		setIsLoading(true);
 		await commitChanges(path.path, commitMessage, selectedFiles);
 		await fetchChanges();
+		setCommitMessage("");
 		setIsLoading(false);
 	};
 
