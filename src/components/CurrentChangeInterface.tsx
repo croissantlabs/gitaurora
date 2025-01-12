@@ -1,5 +1,6 @@
 import type { Path } from "@/db/dexie";
 import { type FileChange, useGitCommand } from "@/hooks/useGitCommand";
+import { invoke } from "@tauri-apps/api/core";
 import { Loader2, LoaderCircle } from "lucide-react";
 import { useState } from "react";
 import { NavLink } from "react-router";
@@ -14,31 +15,35 @@ interface Props {
 	path: Path;
 }
 
+const commitChanges = async (
+	directory: string,
+	commitMessage: string,
+	files: string[],
+): Promise<void> => {
+	try {
+		await invoke("git_add_and_commit", {
+			directory,
+			commitMessage,
+			files,
+		});
+	} catch (error) {
+		console.error("Error committing changes:", error);
+		throw error;
+	}
+};
+
 export const CurrentChangeInterface = ({ changes, path }: Props) => {
 	const [selectedFiles, setSelectedFiles] = useState<string[]>(
 		changes.map((change) => change.filename),
 	);
-	const { commitChanges } = useGitCommand();
 
 	const [commitMessage, setCommitMessage] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
 
 	const handleCommit = async () => {
-		if (!commitMessage.trim()) {
-			alert("Please enter a commit message");
-			return;
-		}
-
 		setIsLoading(true);
-		try {
-			await commitChanges(path.path, commitMessage, selectedFiles);
-			setCommitMessage("");
-		} catch (error) {
-			console.error("Failed to commit changes:", error);
-			alert("Failed to commit changes. Please try again.");
-		} finally {
-			setIsLoading(false);
-		}
+		await commitChanges(path.path, commitMessage, selectedFiles);
+		setIsLoading(false);
 	};
 
 	const handleSelectChange = (file: string, isSelected: boolean) => {
