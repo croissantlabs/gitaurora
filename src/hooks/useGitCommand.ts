@@ -194,24 +194,6 @@ export const useGitCommand = () => {
 		}
 	};
 
-	// a function to commit changes
-	const commitChanges = async (
-		directory: string,
-		commitMessage: string,
-		files: string[],
-	): Promise<void> => {
-		try {
-			await invoke("git_add_and_commit", {
-				directory,
-				commitMessage,
-				files,
-			});
-		} catch (error) {
-			console.error("Error committing changes:", error);
-			throw error;
-		}
-	};
-
 	// a function to get the change of a file from a commit
 	const getChangeFromCommitByFilename = async (
 		directory: string,
@@ -245,7 +227,6 @@ export const useGitCommand = () => {
 		deleteBranch,
 		createBranch,
 		switchBranch,
-		commitChanges,
 		pushCurrentBranch,
 	};
 };
