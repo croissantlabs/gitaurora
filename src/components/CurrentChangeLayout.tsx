@@ -35,18 +35,17 @@ export const CurrentChangeLayout = () => {
 	const path = useOutletContext<Path>();
 	const [changes, setChanges] = useState<FileChange[]>([]);
 
+	const fetchChanges = async () => {
+		const uncommittedChanges = await getCurrentChangeFile(path.path);
+		if (!compareTwoArrays(uncommittedChanges, changes)) {
+			setChanges(uncommittedChanges);
+		}
+	};
+
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
 		if (path.path) {
-			const fetchChanges = async () => {
-				const uncommittedChanges = await getCurrentChangeFile(path.path);
-				if (!compareTwoArrays(uncommittedChanges, changes)) {
-					setChanges(uncommittedChanges);
-				}
-			};
-
 			fetchChanges();
-
 			const intervalId = setInterval(fetchChanges, 2000);
 
 			return () => clearInterval(intervalId);

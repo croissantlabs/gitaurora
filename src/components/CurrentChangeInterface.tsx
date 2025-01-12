@@ -13,6 +13,7 @@ import { Textarea } from "./ui/textarea";
 interface Props {
 	changes: FileChange[];
 	path: Path;
+	fetchChanges: () => void;
 }
 
 const commitChanges = async (
@@ -32,7 +33,11 @@ const commitChanges = async (
 	}
 };
 
-export const CurrentChangeInterface = ({ changes, path }: Props) => {
+export const CurrentChangeInterface = ({
+	changes,
+	path,
+	fetchChanges,
+}: Props) => {
 	const [selectedFiles, setSelectedFiles] = useState<string[]>(
 		changes.map((change) => change.filename),
 	);
@@ -43,6 +48,7 @@ export const CurrentChangeInterface = ({ changes, path }: Props) => {
 	const onClickButtonCommit = async () => {
 		setIsLoading(true);
 		await commitChanges(path.path, commitMessage, selectedFiles);
+		await fetchChanges();
 		setIsLoading(false);
 	};
 
