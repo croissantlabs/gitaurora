@@ -1,5 +1,6 @@
 import type { Path } from "@/db/dexie";
 import { type FileChange, useGitCommand } from "@/hooks/useGitCommand";
+import { Loader2, LoaderCircle } from "lucide-react";
 import { useState } from "react";
 import { NavLink } from "react-router";
 import { Button } from "./ui/button";
@@ -80,7 +81,11 @@ export const CurrentChangeInterface = ({ changes, path }: Props) => {
 					onChange={(e) => setCommitMessage(e.target.value)}
 				/>
 				<Button onClick={handleCommit} disabled={isLoading}>
-					{isLoading ? "Committing..." : "Commit Changes"}
+					{isLoading ? (
+						<LoaderCircle className="animate-spin" />
+					) : (
+						"Commit Changes"
+					)}
 				</Button>
 			</CardFooter>
 		</div>
