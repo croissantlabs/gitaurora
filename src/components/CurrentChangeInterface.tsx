@@ -40,7 +40,7 @@ export const CurrentChangeInterface = ({ changes, path }: Props) => {
 	const [commitMessage, setCommitMessage] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
 
-	const handleCommit = async () => {
+	const onClickButtonCommit = async () => {
 		setIsLoading(true);
 		await commitChanges(path.path, commitMessage, selectedFiles);
 		setIsLoading(false);
@@ -85,7 +85,7 @@ export const CurrentChangeInterface = ({ changes, path }: Props) => {
 					value={commitMessage}
 					onChange={(e) => setCommitMessage(e.target.value)}
 				/>
-				<Button onClick={handleCommit} disabled={isLoading}>
+				<Button onClick={onClickButtonCommit} disabled={isLoading}>
 					{isLoading ? (
 						<LoaderCircle className="animate-spin" />
 					) : (
