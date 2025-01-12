@@ -106,15 +106,13 @@ export const AppFooter = ({ path }: Props) => {
 					<TooltipProvider>
 						<Tooltip>
 							<TooltipTrigger asChild>
-								<div>
-									<Button
-										variant="outline"
-										size="sm"
-										onClick={onClickButtonPull}
-									>
+								<Button variant="outline" size="sm" onClick={onClickButtonPull}>
+									{isLoadingPull ? (
+										<LoaderCircle className="animate-spin" />
+									) : (
 										<ArrowBigDown className="h-4 w-4" />
-									</Button>
-								</div>
+									)}
+								</Button>
 							</TooltipTrigger>
 							<TooltipContent>
 								<p>Pull --rebase</p>
