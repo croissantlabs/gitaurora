@@ -11,7 +11,33 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+    outputs:
+      new_version: ${{ steps.bump_version.outputs.new_version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Bump version
+        id: bump_version
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          npm version patch -m "Bump version to %s"
+          echo "new_version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Push changes
+        run: git push --follow-tags
+
   publish-tauri:
+    needs: bump-version
     permissions:
       contents: write
     strategy:
@@ -28,6 +54,8 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-22.04'
@@ -54,10 +82,6 @@ jobs:
       - name: install frontend dependencies
         run: npm install
 
-      - name: Get version
-        id: get_version
-        run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
-
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -65,29 +89,25 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
         with:
-          tagName: app-v${{ steps.get_version.outputs.VERSION }}
-          releaseName: 'App v${{ steps.get_version.outputs.VERSION }}'
+          tagName: app-v${{ needs.bump-version.outputs.new_version }}
+          releaseName: 'App v${{ needs.bump-version.outputs.new_version }}'
           releaseBody: 'See the assets to download this version and install.'
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
 
   publish-to-other-repo:
-    needs: publish-tauri
+    needs: [bump-version, publish-tauri]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source repository
         uses: actions/checkout@v4
 
-      - name: Get version
-        id: get_version
-        run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
-
       - name: Wait for release to be available
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          while ! gh release view app-v${{ steps.get_version.outputs.VERSION }} --repo ${{ github.repository }}; do
+          while ! gh release view app-v${{ needs.bump-version.outputs.new_version }} --repo ${{ github.repository }}; do
             echo "Waiting for release to be available..."
             sleep 10
           done
@@ -96,7 +116,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release download app-v${{ steps.get_version.outputs.VERSION }} --repo ${{ github.repository }} --dir ./assets
+          gh release download app-v${{ needs.bump-version.outputs.new_version }} --repo ${{ github.repository }} --dir ./assets
 
       - name: Checkout target repository
         uses: actions/checkout@v4
@@ -113,7 +133,7 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
           git add .
-          git commit -m "Release app-v${{ steps.get_version.outputs.VERSION }}"
+          git commit -m "Release app-v${{ needs.bump-version.outputs.new_version }}"
           git push
 
       - name: List assets
@@ -126,7 +146,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           cd ./target-repo
-          gh release create app-v${{ steps.get_version.outputs.VERSION }} \
-            --title "App v${{ steps.get_version.outputs.VERSION }}" \
+          gh release create app-v${{ needs.bump-version.outputs.new_version }} \
+            --title "App v${{ needs.bump-version.outputs.new_version }}" \
             --notes "See the assets to download this version and install." \
             ./assets/*
