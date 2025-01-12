@@ -96,7 +96,10 @@ export const CurrentChangeInterface = ({
 					value={commitMessage}
 					onChange={(e) => setCommitMessage(e.target.value)}
 				/>
-				<Button onClick={onClickButtonCommit} disabled={isLoading}>
+				<Button
+					onClick={onClickButtonCommit}
+					disabled={isLoading || !commitChanges}
+				>
 					{isLoading ? (
 						<LoaderCircle className="animate-spin" />
 					) : (
