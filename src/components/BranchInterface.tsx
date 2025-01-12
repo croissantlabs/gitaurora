@@ -1,27 +1,35 @@
+import { Button } from "@/components/ui/button";
+import { CardHeader, CardTitle } from "@/components/ui/card";
+import {
+	ContextMenu,
+	ContextMenuContent,
+	ContextMenuItem,
+	ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Path } from "@/db/dexie";
 import { type Branch, useGitCommand } from "@/hooks/useGitCommand";
 import { invoke } from "@tauri-apps/api/core";
 import { Check, GitBranch, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router";
-import { Button } from "./ui/button";
-import { CardHeader, CardTitle } from "./ui/card";
-import { Input } from "./ui/input";
-import { ScrollArea } from "./ui/scroll-area";
 
 interface Props {
 	path: Path;
 }
 
-const getAllGitBranches = async (directory: string): Promise<Branch[]> => {
+const mergeWithCurrentBranch = async (
+	directory: string,
+	branchName: string,
+) => {
 	try {
-		const branches: Branch[] = await invoke("get_all_git_branches", {
-			currentPath: directory,
+		await invoke("merge_with_current_branch", {
+			directory,
+			branchName,
 		});
-
-		return branches;
 	} catch (error) {
-		console.error("Error getting Git branches:", error);
+		console.error("Error committing changes:", error);
 		throw error;
 	}
 };
@@ -32,7 +40,7 @@ export const BranchInterface = ({ path }: Props) => {
 	const [isCurrentlyCreatingBranch, setIsCurrentlyCreatingBranch] =
 		useState(false);
 	const [newBranchName, setNewBranchName] = useState("");
-	const { createBranch, switchBranch } = useGitCommand();
+	const { getAllGitBranches, createBranch, switchBranch } = useGitCommand();
 
 	const fetchBranches = async () => {
 		const allBranches = await getAllGitBranches(path.path);
@@ -63,6 +71,10 @@ export const BranchInterface = ({ path }: Props) => {
 		} catch (error) {
 			console.error(error);
 		}
+	};
+
+	const onClickButtonMerge = async (branchName: string) => {
+		await mergeWithCurrentBranch(path.path, branchName);
 	};
 
 	return (
@@ -104,23 +116,35 @@ export const BranchInterface = ({ path }: Props) => {
 			)}
 			<ScrollArea className="h-full">
 				{branches?.map((branch) => (
-					<NavLink
-						key={branch.name}
-						to={`branch/${branch.name}/${branch.is_active ? "current_change" : "commits"}`}
-						onDoubleClick={() => checkoutBranch(branch.name)}
-					>
-						{({ isActive }) => (
-							<Button
-								variant="ghost"
-								className={`w-full justify-start gap-2 text-sm ${isActive ? "bg-blue-500" : ""}`}
+					<ContextMenu key={branch.name}>
+						<ContextMenuTrigger>
+							<NavLink
+								to={`branch/${branch.name}/${branch.is_active ? "current_change" : "commits"}`}
+								onDoubleClick={() => checkoutBranch(branch.name)}
 							>
-								{branch.is_active && (
-									<span className="h-2 w-2 rounded-full bg-green-500" />
+								{({ isActive }) => (
+									<Button
+										variant="ghost"
+										className={`w-full justify-start gap-2 text-sm ${isActive ? "bg-blue-500" : ""}`}
+									>
+										{branch.is_active && (
+											<span className="h-2 w-2 rounded-full bg-green-500" />
+										)}
+										{branch.name}
+									</Button>
 								)}
-								{branch.name}
-							</Button>
+							</NavLink>
+						</ContextMenuTrigger>
+						{!branch.is_active && (
+							<ContextMenuContent className="w-64">
+								<ContextMenuItem
+									onClick={() => onClickButtonMerge(branch.name)}
+								>
+									<span>Merge with current branch</span>
+								</ContextMenuItem>
+							</ContextMenuContent>
 						)}
-					</NavLink>
+					</ContextMenu>
 				))}
 			</ScrollArea>
 		</div>
