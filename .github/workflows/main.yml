@@ -11,33 +11,53 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  bump-version:
+  bump-version-and-publish:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
-    outputs:
-      new_version: ${{ steps.bump_version.outputs.new_version }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Setup Node.js
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 'lts/*'
+          node-version: lts/*
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
 
       - name: Bump version
         id: bump_version
         run: |
+          # Increment version based on commit message or default to "patch"
+          bump_type=$(git log -1 --pretty=%B | grep -Eo '(major|minor|patch)' || echo "patch")
+          npm version $bump_type --no-git-tag-version
+          echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
+
+      - name: Commit updated version
+        run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          npm version patch -m "Bump version to %s"
-          echo "new_version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+          git add package.json package-lock.json
+          git commit -m "chore: bump version to ${{ env.VERSION }}"
+          git push
 
-      - name: Push changes
-        run: git push --follow-tags
+      - name: Continue Workflow Dispatch
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'publish.yml',
+              ref: 'main',
+            })
 
   publish-tauri:
-    needs: bump-version
+    needs: bump-version-and-publish
     permissions:
       contents: write
     strategy:
@@ -54,22 +74,20 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: install dependencies (ubuntu only)
+      - name: Install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
-      - name: setup node
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
           cache: 'npm'
 
-      - name: install Rust stable
+      - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
@@ -79,8 +97,12 @@ jobs:
         with:
           workspaces: './src-tauri -> target'
 
-      - name: install frontend dependencies
+      - name: Install frontend dependencies
         run: npm install
+
+      - name: Get version
+        id: get_version
+        run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
       - uses: tauri-apps/tauri-action@v0
         env:
@@ -89,25 +111,29 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
         with:
-          tagName: app-v${{ needs.bump-version.outputs.new_version }}
-          releaseName: 'App v${{ needs.bump-version.outputs.new_version }}'
+          tagName: app-v${{ steps.get_version.outputs.VERSION }}
+          releaseName: 'App v${{ steps.get_version.outputs.VERSION }}'
           releaseBody: 'See the assets to download this version and install.'
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
 
   publish-to-other-repo:
-    needs: [bump-version, publish-tauri]
+    needs: publish-tauri
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source repository
         uses: actions/checkout@v4
 
+      - name: Get version
+        id: get_version
+        run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
       - name: Wait for release to be available
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          while ! gh release view app-v${{ needs.bump-version.outputs.new_version }} --repo ${{ github.repository }}; do
+          while ! gh release view app-v${{ steps.get_version.outputs.VERSION }} --repo ${{ github.repository }}; do
             echo "Waiting for release to be available..."
             sleep 10
           done
@@ -116,7 +142,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release download app-v${{ needs.bump-version.outputs.new_version }} --repo ${{ github.repository }} --dir ./assets
+          gh release download app-v${{ steps.get_version.outputs.VERSION }} --repo ${{ github.repository }} --dir ./assets
 
       - name: Checkout target repository
         uses: actions/checkout@v4
@@ -133,7 +159,7 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
           git add .
-          git commit -m "Release app-v${{ needs.bump-version.outputs.new_version }}"
+          git commit -m "Release app-v${{ steps.get_version.outputs.VERSION }}"
           git push
 
       - name: List assets
@@ -146,7 +172,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           cd ./target-repo
-          gh release create app-v${{ needs.bump-version.outputs.new_version }} \
-            --title "App v${{ needs.bump-version.outputs.new_version }}" \
+          gh release create app-v${{ steps.get_version.outputs.VERSION }} \
+            --title "App v${{ steps.get_version.outputs.VERSION }}" \
             --notes "See the assets to download this version and install." \
             ./assets/*
