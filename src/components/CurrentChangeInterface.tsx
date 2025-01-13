@@ -9,6 +9,12 @@ import { Button } from "./ui/button";
 import { CardFooter } from "./ui/card";
 import { Checkbox } from "./ui/checkbox";
 import { ScrollArea } from "./ui/scroll-area";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "./ui/tooltip";
 
 interface Props {
 	changes: FileChange[];
@@ -126,17 +132,24 @@ export const CurrentChangeInterface = ({
 							"Commit Changes"
 						)}
 					</Button>
-					<Button
-						variant={"outline"}
-						disabled={isLoadingPush}
-						onClick={onClickButtonPush}
-					>
-						{isLoadingPush ? (
-							<LoaderCircle className="animate-spin" />
-						) : (
-							<ArrowBigUp />
-						)}
-					</Button>
+					<TooltipProvider>
+						<Tooltip>
+							<TooltipTrigger>
+								<Button
+									variant={"outline"}
+									disabled={isLoadingPush}
+									onClick={onClickButtonPush}
+								>
+									{isLoadingPush ? (
+										<LoaderCircle className="animate-spin" />
+									) : (
+										<ArrowBigUp />
+									)}
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent>Push</TooltipContent>
+						</Tooltip>
+					</TooltipProvider>
 				</div>
 			</CardFooter>
 		</div>
