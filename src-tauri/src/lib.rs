@@ -22,6 +22,17 @@ async fn push_current_branch (directory: String) -> Result<(), String> {
 }
 
 #[tauri::command]
+async fn merge_with_current_branch (directory: String, branch_name: String) -> Result<(), String> {
+    let output = Command::new("git")
+        .args(["merge", &branch_name])
+        .current_dir(directory)
+        .output()
+        .expect("Failed to execute git command");
+
+        Ok(())
+}
+
+#[tauri::command]
 async fn fetch (directory: String) -> Result<(), String> {
     let output = Command::new("git")
         .arg("fetch")
@@ -635,6 +646,7 @@ pub fn run() {
             get_current_changes_status,
             get_current_changes_file_status,
             git_add_and_commit,
+            merge_with_current_branch,
             fetch,
             pull
         ])
