@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   bump-version-and-publish:
-    if: ${{ github.actor != 'github-actions[bot]' }} # Prevent recursion
+    if: ${{ github.actor != 'github-actions[bot]' }}
     permissions:
       contents: write
       actions: write
@@ -36,7 +36,6 @@ jobs:
       - name: Bump version
         id: bump_version
         run: |
-          # Increment version based on commit message or default to "patch"
           bump_type=$(git log -1 --pretty=%B | grep -Eo '(major|minor|patch)' || echo "patch")
           npx tauri-version@latest $bump_type --no-git --no-lock
           echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
@@ -51,21 +50,6 @@ jobs:
           git commit -m "chore: bump version to ${{ env.VERSION }}"
           git push
 
-      - name: Continue Workflow Dispatch
-        uses: actions/github-script@v6
-        if: ${{ github.event_name == 'workflow_dispatch' }} # Avoid triggering on push
-        with:
-          script: |
-            github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'main.yml',
-              ref: 'main',
-              headers: {
-                authorization: Bearer ${{ secrets.PAT_TOKEN }},
-              },
-            })
-
   publish-tauri:
     needs: bump-version-and-publish
     permissions:
@@ -74,14 +58,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # - platform: 'macos-latest' # for Arm based macs (M1 and above).
-          #   args: '--target aarch64-apple-darwin'
-          - platform: 'macos-latest' # for Intel based macs.
+          - platform: 'macos-latest'
             args: '--target x86_64-apple-darwin'
-          # - platform: 'ubuntu-22.04'
-          #   args: ''
-          # - platform: 'windows-latest'
-          #   args: ''
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -101,8 +79,6 @@ jobs:
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
@@ -121,7 +97,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
         with:
           tagName: app-v__VERSION__
           releaseName: 'App v__VERSION__'
@@ -133,49 +108,59 @@ jobs:
   publish-to-other-repo:
     needs: publish-tauri
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout source repository
         uses: actions/checkout@v4
 
-      - name: Get version
-        id: get_version
-        run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+      - name: Get version and pub_date for latest.json
+        id: get_version_and_date
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          PUB_DATE=$(date --utc +'%Y-%m-%dT%H:%M:%SZ')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "PUB_DATE=$PUB_DATE" >> $GITHUB_ENV
 
-      - name: Download release assets
+      - name: Download release assets from source repo
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release download app-v${{ steps.get_version.outputs.VERSION }} --repo ${{ github.repository }} --dir ./assets
+          gh release download app-v${{ env.VERSION }} --repo ${{ github.repository }} --dir ./assets
 
-      - name: Checkout target repository
+      - name: Checkout target repository (gitaurora-release)
         uses: actions/checkout@v4
         with:
           repository: monsieursam/gitaurora-release
           token: ${{ secrets.PAT_TOKEN }}
           path: target-repo
 
-      - name: Copy assets to target repository
+      - name: Copy assets to target repository and update latest.json
         run: |
           mkdir -p ./target-repo/assets
-          cp -R ./assets/* ./target-repo/assets/
+          cp ./assets/* ./target-repo/assets/
+
+          # Update latest.json with correct URL pointing to target repo's release assets.
+          TARGET_URL="https://github.com/monsieursam/gitaurora-release/releases/download/app-v${{ env.VERSION }}/gitaurora_x64.app.tar.gz"
+
+          cat <<EOF > ./target-repo/latest.json
+            {
+              "version": "${{ env.VERSION }}",
+              "notes": "See the assets to download this version and install.",
+              "pub_date": "${{ env.PUB_DATE }}",
+              "platforms": {
+                "darwin-x86_64": {
+                  "signature": "$(cat ./assets/*.sig)",
+                  "url": "$TARGET_URL"
+                }
+              }
+            }
+            EOF
+
+      - name: Commit and push changes to target repository
+        run: |
           cd ./target-repo
           git config user.name github-actions
           git config user.email github-actions@github.com
           git add .
-          git commit -m "Release app-v${{ steps.get_version.outputs.VERSION }}"
+          git commit -m "Release app-v${{ env.VERSION }}"
           git push
-
-      - name: List assets
-        run: |
-          cd ./target-repo
-          ls -R ./assets
-
-      - name: Create release in target repository
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
-        run: |
-          cd ./target-repo
-          gh release create app-v${{ steps.get_version.outputs.VERSION }} \
-            --title "App v${{ steps.get_version.outputs.VERSION }}" \
-            --notes "See the assets to download this version and install." \
-            ./assets/*
