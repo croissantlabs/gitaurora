@@ -74,9 +74,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # - platform: 'macos-latest' # for Arm-based macs (M1 and above).
+          # - platform: 'macos-latest' # for Arm based macs (M1 and above).
           #   args: '--target aarch64-apple-darwin'
-          - platform: 'macos-latest' # for Intel-based macs.
+          - platform: 'macos-latest' # for Intel based macs.
             args: '--target x86_64-apple-darwin'
           # - platform: 'ubuntu-22.04'
           #   args: ''
@@ -133,7 +133,6 @@ jobs:
   publish-to-other-repo:
     needs: publish-tauri
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout source repository
         uses: actions/checkout@v4
@@ -148,13 +147,35 @@ jobs:
         run: |
           gh release download app-v${{ steps.get_version.outputs.VERSION }} --repo ${{ github.repository }} --dir ./assets
 
-      - name: Checkout target repository (gitaurora-release)
+      - name: Checkout target repository
         uses: actions/checkout@v4
         with:
           repository: monsieursam/gitaurora-release
           token: ${{ secrets.PAT_TOKEN }}
           path: target-repo
 
-      - name: Copy assets to target repository and update latest.json URL reference
+      - name: Copy assets to target repository
         run: |
-          mkdir -p ./target-repo/assets ./target-repo/meta
+          mkdir -p ./target-repo/assets
+          cp -R ./assets/* ./target-repo/assets/
+          cd ./target-repo
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add .
+          git commit -m "Release app-v${{ steps.get_version.outputs.VERSION }}"
+          git push
+
+      - name: List assets
+        run: |
+          cd ./target-repo
+          ls -R ./assets
+
+      - name: Create release in target repository
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          cd ./target-repo
+          gh release create app-v${{ steps.get_version.outputs.VERSION }} \
+            --title "App v${{ steps.get_version.outputs.VERSION }}" \
+            --notes "See the assets to download this version and install." \
+            ./assets/*
