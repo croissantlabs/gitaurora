@@ -154,15 +154,12 @@ jobs:
           token: ${{ secrets.PAT_TOKEN }}
           path: target-repo
 
-      - name: Update latest.json
-        run: |
-          jq '.platforms."darwin-x86_64".url = "https://github.com/monsieursam/gitaurora-release/releases/download/app-v${{ steps.get_version.outputs.VERSION }}/gitaurora_x64.app.tar.gz"' ./assets/latest.json > ./target-repo/latest.json
-
       - name: Copy assets to target repository
         run: |
           mkdir -p ./target-repo/assets
           cp -R ./assets/* ./target-repo/assets/
           cd ./target-repo
+          sed -i 's|https://github.com/monsieursam/gitaurora|https://github.com/monsieursam/gitaurora-release|g' ./assets/latest.json
           git config user.name github-actions
           git config user.email github-actions@github.com
           git add .
@@ -182,4 +179,4 @@ jobs:
           gh release create app-v${{ steps.get_version.outputs.VERSION }} \
             --title "App v${{ steps.get_version.outputs.VERSION }}" \
             --notes "See the assets to download this version and install." \
-            ./assets/* latest.json
+            ./assets/*
