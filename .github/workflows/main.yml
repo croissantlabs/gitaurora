@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   bump-version-and-publish:
-    if: ${{ github.actor != 'github-actions[bot]' }} # Prevent recursion
+    if: ${{ github.actor != 'github-actions[bot]' }}
     permissions:
       contents: write
       actions: write
@@ -36,7 +36,6 @@ jobs:
       - name: Bump version
         id: bump_version
         run: |
-          # Increment version based on commit message or default to "patch"
           bump_type=$(git log -1 --pretty=%B | grep -Eo '(major|minor|patch)' || echo "patch")
           npx tauri-version@latest $bump_type --no-git --no-lock
           echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
@@ -53,7 +52,7 @@ jobs:
 
       - name: Continue Workflow Dispatch
         uses: actions/github-script@v6
-        if: ${{ github.event_name == 'workflow_dispatch' }} # Avoid triggering on push
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         with:
           script: |
             github.rest.actions.createWorkflowDispatch({
@@ -74,9 +73,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: 'macos-latest' # for Arm based macs (M1 and above).
+          - platform: 'macos-latest'
             args: '--target aarch64-apple-darwin'
-          - platform: 'macos-latest' # for Intel based macs.
+          - platform: 'macos-latest'
             args: '--target x86_64-apple-darwin'
           - platform: 'ubuntu-22.04'
             args: ''
@@ -163,6 +162,38 @@ jobs:
           git config user.email github-actions@github.com
           git add .
           git commit -m "Release app-v${{ steps.get_version.outputs.VERSION }}"
+          git push
+
+      - name: Update latest.json
+        run: |
+          cd ./target-repo
+          cat > latest.json << EOL
+          {
+            "version": "${{ steps.get_version.outputs.VERSION }}",
+            "notes": "See the assets to download this version and install.",
+            "pub_date": "$(date -u +'%Y-%m-%dT%H:%M:%S.%3NZ')",
+            "platforms": {
+              "darwin-aarch64": {
+                "signature": "$(cat ./assets/gitaurora_aarch64.app.tar.gz.sig)",
+                "url": "https://github.com/monsieursam/gitaurora-release/releases/download/app-v${{ steps.get_version.outputs.VERSION }}/gitaurora_aarch64.app.tar.gz"
+              },
+              "darwin-x86_64": {
+                "signature": "$(cat ./assets/gitaurora_x64.app.tar.gz.sig)",
+                "url": "https://github.com/monsieursam/gitaurora-release/releases/download/app-v${{ steps.get_version.outputs.VERSION }}/gitaurora_x64.app.tar.gz"
+              },
+              "linux-x86_64": {
+                "signature": "$(cat ./assets/gitaurora_${{ steps.get_version.outputs.VERSION }}_amd64.AppImage.sig)",
+                "url": "https://github.com/monsieursam/gitaurora-release/releases/download/app-v${{ steps.get_version.outputs.VERSION }}/gitaurora_${{ steps.get_version.outputs.VERSION }}_amd64.AppImage"
+              },
+              "windows-x86_64": {
+                "signature": "$(cat ./assets/gitaurora_${{ steps.get_version.outputs.VERSION }}_x64_en-US.msi.sig)",
+                "url": "https://github.com/monsieursam/gitaurora-release/releases/download/app-v${{ steps.get_version.outputs.VERSION }}/gitaurora_${{ steps.get_version.outputs.VERSION }}_x64_en-US.msi"
+              }
+            }
+          }
+          EOL
+          git add latest.json
+          git commit -m "Update latest.json for version ${{ steps.get_version.outputs.VERSION }}"
           git push
 
       - name: List assets
