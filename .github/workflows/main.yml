@@ -39,7 +39,7 @@ jobs:
           # Increment version based on commit message or default to "patch"
           bump_type=$(git log -1 --pretty=%B | grep -Eo '(major|minor|patch)' || echo "patch")
           npx tauri-version@latest $bump_type --no-git --no-lock
-          echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
+          echo "VERSION=$(node -p \"require('./package.json').version\")" >> $GITHUB_ENV
 
           cd src-tauri && cargo update -p gitaurora
 
@@ -74,14 +74,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # - platform: 'macos-latest' # for Arm based macs (M1 and above).
-          #   args: '--target aarch64-apple-darwin'
+          - platform: 'macos-latest' # for Arm based macs (M1 and above).
+            args: '--target aarch64-apple-darwin'
           - platform: 'macos-latest' # for Intel based macs.
             args: '--target x86_64-apple-darwin'
-          # - platform: 'ubuntu-22.04'
-          #   args: ''
-          # - platform: 'windows-latest'
-          #   args: ''
+          - platform: 'ubuntu-22.04'
+            args: ''
+          - platform: 'windows-latest'
+            args: ''
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -114,7 +114,7 @@ jobs:
 
       - name: Get version
         id: get_version
-        run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+        run: echo "VERSION=$(node -p \"require('./package.json').version\")" >> $GITHUB_OUTPUT
 
       - uses: tauri-apps/tauri-action@v0
         env:
@@ -158,20 +158,42 @@ jobs:
         run: |
           mkdir -p ./target-repo/assets
           cp -R ./assets/* ./target-repo/assets/
-
-      - name: Update latest.json
-        run: |
-          cd ./target-repo
-          jq '.platforms.darwin-aarch64.url = "https://github.com/monsieursam/gitaurora-release/releases/download/app-v${{ steps.get_version.outputs.VERSION }}/gitaurora_aarch64.app.tar.gz"' latest.json > tmp.json && mv tmp.json latest.json
-          jq '.platforms.darwin-x86_64.url = "https://github.com/monsieursam/gitaurora-release/releases/download/app-v${{ steps.get_version.outputs.VERSION }}/gitaurora_x64.app.tar.gz"' latest.json > tmp.json && mv tmp.json latest.json
-          jq '.platforms.linux-x86_64.url = "https://github.com/monsieursam/gitaurora-release/releases/download/app-v${{ steps.get_version.outputs.VERSION }}/gitaurora_${{ steps.get_version.outputs.VERSION }}_amd64.AppImage"' latest.json > tmp.json && mv tmp.json latest.json
-          jq '.platforms.windows-x86_64.url = "https://github.com/monsieursam/gitaurora-release/releases/download/app-v${{ steps.get_version.outputs.VERSION }}/gitaurora_${{ steps.get_version.outputs.VERSION }}_x64_en-US.msi"' latest.json > tmp.json && mv tmp.json latest.json
-
-      - name: Commit and Push Changes
-        run: |
           cd ./target-repo
           git config user.name github-actions
           git config user.email github-actions@github.com
           git add .
-          git commit -m "Update latest.json for app-v${{ steps.get_version.outputs.VERSION }}"
+          git commit -m "Release app-v${{ steps.get_version.outputs.VERSION }}"
+          git push
+
+      - name: Create latest.json
+        run: |
+          echo '{
+            "version": "${{ steps.get_version.outputs.VERSION }}",
+            "notes": "See the assets to download this version and install.",
+            "pub_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "platforms": {
+              "darwin-aarch64": {
+                "signature": "SIGNATURE_PLACEHOLDER",
+                "url": "https://github.com/monsieursam/gitaurora-release/releases/download/app-v${{ steps.get_version.outputs.VERSION }}/gitaurora_aarch64.app.tar.gz"
+              },
+              "darwin-x86_64": {
+                "signature": "SIGNATURE_PLACEHOLDER",
+                "url": "https://github.com/monsieursam/gitaurora-release/releases/download/app-v${{ steps.get_version.outputs.VERSION }}/gitaurora_x64.app.tar.gz"
+              },
+              "linux-x86_64": {
+                "signature": "SIGNATURE_PLACEHOLDER",
+                "url": "https://github.com/monsieursam/gitaurora-release/releases/download/app-v${{ steps.get_version.outputs.VERSION }}/gitaurora_${{ steps.get_version.outputs.VERSION }}_amd64.AppImage"
+              },
+              "windows-x86_64": {
+                "signature": "SIGNATURE_PLACEHOLDER",
+                "url": "https://github.com/monsieursam/gitaurora-release/releases/download/app-v${{ steps.get_version.outputs.VERSION }}/gitaurora_${{ steps.get_version.outputs.VERSION }}_x64_en-US.msi"
+              }
+            }
+          }' > ./target-repo/latest.json
+
+      - name: Push latest.json to target repository
+        run: |
+          cd ./target-repo
+          git add latest.json
+          git commit -m "Update latest.json for version ${{ steps.get_version.outputs.VERSION }}"
           git push
