@@ -8,6 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const getUpdate = async () => {
+	console.log("last retry");
 	const update = await check();
 	console.log(update);
 	if (update) {
