@@ -74,14 +74,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # - platform: 'macos-latest' # for Arm based macs (M1 and above).
-          #   args: '--target aarch64-apple-darwin'
+          - platform: 'macos-latest' # for Arm based macs (M1 and above).
+            args: '--target aarch64-apple-darwin'
           - platform: 'macos-latest' # for Intel based macs.
             args: '--target x86_64-apple-darwin'
-          # - platform: 'ubuntu-22.04'
-          #   args: ''
-          # - platform: 'windows-latest'
-          #   args: ''
+          - platform: 'ubuntu-22.04'
+            args: ''
+          - platform: 'windows-latest'
+            args: ''
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -114,7 +114,7 @@ jobs:
 
       - name: Get version
         id: get_version
-        run: echo "VERSION=$(node -p \"require('./package.json').version\")" >> $GITHUB_OUTPUT
+        run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
       - uses: tauri-apps/tauri-action@v0
         env:
@@ -123,6 +123,8 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
         with:
+          owner: 'monsieursam'
+          repo: 'gitaurora-release'
           tagName: app-v__VERSION__
           releaseName: 'App v__VERSION__'
           releaseBody: 'See the assets to download this version and install.'
@@ -135,22 +137,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source repository
-        uses: actions/checkout@v4
-
+        uses: actions/checkout@v4...
       - name: Get version
         id: get_version
-        run: echo "VERSION=$(node -p \"require('./package.json').version\")" >> $GITHUB_OUTPUT
+        run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
       - name: Download release assets
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release download app-v${{ steps.get_version.outputs.VERSION }} --repo ${{ github.repository }} --dir ./assets
-
-      # Fix references in latest.json before pushing to the target repo
-      - name: Fix references in latest.json
-        run: |
-          sed -i 's|https://github.com/monsieursam/gitaurora|https://github.com/monsieursam/gitaurora-release|g' ./assets/latest.json
 
       - name: Checkout target repository
         uses: actions/checkout@v4
