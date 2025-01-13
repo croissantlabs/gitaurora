@@ -9,6 +9,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export const getUpdate = async () => {
 	const update = await check();
+	console.log(update);
 	if (update) {
 		console.log(
 			`found update ${update.version} from ${update.date} with notes ${update.body}`,
