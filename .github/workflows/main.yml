@@ -156,15 +156,17 @@ jobs:
 
       - name: Copy assets to target repository
         run: |
-          mkdir -p ./target-repo/assets
-          cp -R ./assets/* ./target-repo/assets/
-          cd ./target-repo
-          sed -i 's|https://github.com/monsieursam/gitaurora|https://github.com/monsieursam/gitaurora-release|g' ./assets/latest.json
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git add .
-          git commit -m "Release app-v${{ steps.get_version.outputs.VERSION }}"
-          git push
+            mkdir -p ./target-repo/assets
+            cp ./assets/latest.json ./target-repo/assets/
+            cp ./assets/gitaurora_${{ steps.get_version.outputs.VERSION }}_* ./target-repo/assets/
+            cd ./target-repo
+            sed -i 's|https://github.com/monsieursam/gitaurora|https://github.com/monsieursam/gitaurora-release|g' ./assets/latest.json
+            git config user.name github-actions
+            git config user.email github-actions@github.com
+            git add .
+            git commit -m "Release app-v${{ steps.get_version.outputs.VERSION }}"
+            git push
+
 
       - name: List assets
         run: |
