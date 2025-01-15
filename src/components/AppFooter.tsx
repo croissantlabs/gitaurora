@@ -88,6 +88,24 @@ export const AppFooter = ({ path }: Props) => {
 								<Button
 									variant="outline"
 									size="sm"
+									onClick={onClickButtonFetch}
+								>
+									<LoaderPinwheel
+										className={`h-4 w-4 ${isLoadingFetch ? "animate-spin" : ""}`}
+									/>
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent>
+								<p>Fetch</p>
+							</TooltipContent>
+						</Tooltip>
+					</TooltipProvider>
+					<TooltipProvider>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button
+									variant="outline"
+									size="sm"
 									onClick={onClickButtonPush}
 									disabled={isLoadingPush}
 								>
@@ -152,24 +170,6 @@ export const AppFooter = ({ path }: Props) => {
 					</TooltipProvider>
 				</div>
 				<div className="flex space-x-4">
-					<TooltipProvider>
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<Button
-									variant="outline"
-									size="sm"
-									onClick={onClickButtonFetch}
-								>
-									<LoaderPinwheel
-										className={`h-4 w-4 ${isLoadingFetch ? "animate-spin" : ""}`}
-									/>
-								</Button>
-							</TooltipTrigger>
-							<TooltipContent>
-								<p>Fetch</p>
-							</TooltipContent>
-						</Tooltip>
-					</TooltipProvider>
 					<ModeToggle />
 				</div>
 			</div>

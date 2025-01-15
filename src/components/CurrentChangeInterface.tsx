@@ -123,7 +123,7 @@ export const CurrentChangeInterface = ({
 				<div className="flex items-center space-x-2">
 					<Button
 						onClick={onClickButtonCommit}
-						disabled={isLoading || !commitChanges}
+						disabled={isLoading || !commitMessage || selectedFiles.length === 0}
 						className="flex-1"
 					>
 						{isLoading ? (
