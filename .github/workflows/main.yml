@@ -159,7 +159,7 @@ jobs:
             mkdir -p ./target-repo/assets
             cp ./assets/latest.json ./target-repo/assets/
             cp ./assets/gitaurora_aarch64.* ./target-repo/assets/
-            cp ./assets/gitaurora_x86_64.* ./target-repo/assets/
+            cp ./assets/gitaurora_x64.* ./target-repo/assets/
             cp ./assets/gitaurora_${{ steps.get_version.outputs.VERSION }}_* ./target-repo/assets/
             cd ./target-repo
             sed -i 's|https://github.com/monsieursam/gitaurora|https://github.com/monsieursam/gitaurora-release|g' ./assets/latest.json
@@ -185,5 +185,5 @@ jobs:
             --notes "See the assets to download this version and install." \
             ./assets/gitaurora_${{ steps.get_version.outputs.VERSION }}_* \
             ./assets/gitaurora_aarch64.* \
-            ./assets/gitaurora_x86_64.* \
+            ./assets/gitaurora_x64.* \
             ./assets/latest.json
