@@ -123,8 +123,8 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
         with:
-          tagName: app-v__VERSION__
-          releaseName: 'App v__VERSION__'
+          tagName: app-${{ steps.get_version.outputs.VERSION }}
+          releaseName: 'App v${{ steps.get_version.outputs.VERSION }}'
           releaseBody: 'See the assets to download this version and install.'
           releaseDraft: false
           prerelease: false
@@ -181,5 +181,5 @@ jobs:
           gh release create app-v${{ steps.get_version.outputs.VERSION }} \
             --title "App v${{ steps.get_version.outputs.VERSION }}" \
             --notes "See the assets to download this version and install." \
-            ./assets/gitaurora_${{ steps.get_version.outputs.VERSION }}_* \
+            ./assets/gitaurora_${{ steps.get_version.outputs.VERSION }}_*.* \
             ./assets/latest.json
