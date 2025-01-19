@@ -1,3 +1,4 @@
+import { Toaster } from "@/components/ui/toaster";
 import { db } from "@/db/dexie";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Outlet } from "react-router";
@@ -14,6 +15,7 @@ const AppLayout = () => {
 			<div className="flex flex-1 overflow-hidden">
 				<Outlet context={paths} />
 			</div>
+			<Toaster />
 		</div>
 	);
 };
