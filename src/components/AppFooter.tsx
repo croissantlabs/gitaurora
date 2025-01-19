@@ -1,4 +1,5 @@
 import type { Path } from "@/db/dexie";
+import { useToast } from "@/hooks/use-toast";
 import { invoke } from "@tauri-apps/api/core";
 import {
 	ArrowBigDown,
@@ -59,10 +60,25 @@ export const AppFooter = ({ path }: Props) => {
 	const [isLoadingPush, setIsLoadingPush] = useState(false);
 	const [isLoadingFetch, setIsLoadingFetch] = useState(false);
 	const [isLoadingPull, setIsLoadingPull] = useState(false);
+	const { toast } = useToast();
 
 	const onClickButtonPush = async () => {
 		setIsLoadingPush(true);
-		await pushCurrentBranch(path.path);
+		try {
+			await pushCurrentBranch(path.path);
+			toast({
+				title: "Changes pushed",
+				description: "Changes pushed successfully",
+				duration: 3000,
+			});
+		} catch (error) {
+			toast({
+				title: "Error pushing changes",
+				description: error,
+				status: "error",
+			});
+		}
+
 		setIsLoadingPush(false);
 	};
 
