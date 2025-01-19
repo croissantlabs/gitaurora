@@ -1,5 +1,6 @@
 import type { Commit } from "@/hooks/useGitCommand";
 import { File, GitCommit } from "lucide-react";
+import { useEffect, useState } from "react";
 import { NavLink } from "react-router";
 import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";

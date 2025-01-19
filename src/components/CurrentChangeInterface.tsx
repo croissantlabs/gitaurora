@@ -1,5 +1,6 @@
 import { Textarea } from "@/components/ui/textarea";
 import type { Path } from "@/db/dexie";
+import { useToast } from "@/hooks/use-toast";
 import type { FileChange } from "@/hooks/useGitCommand";
 import { invoke } from "@tauri-apps/api/core";
 import { ArrowBigUp, LoaderCircle } from "lucide-react";
@@ -58,6 +59,7 @@ export const CurrentChangeInterface = ({
 	const [selectedFiles, setSelectedFiles] = useState<string[]>(
 		changes.map((change) => change.filename),
 	);
+	const { toast } = useToast();
 
 	const [commitMessage, setCommitMessage] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
@@ -65,7 +67,16 @@ export const CurrentChangeInterface = ({
 
 	const onClickButtonCommit = async () => {
 		setIsLoading(true);
-		await commitChanges(path.path, commitMessage, selectedFiles);
+		try {
+			await commitChanges(path.path, commitMessage, selectedFiles);
+			toast({
+				title: "Changes Committed",
+				description: "Changes have been committed successfully",
+				duration: 3000,
+			});
+		} catch (error) {
+			console.error("Error committing changes:", error);
+		}
 		await fetchChanges();
 		setCommitMessage("");
 		setIsLoading(false);
@@ -82,8 +93,6 @@ export const CurrentChangeInterface = ({
 			isSelected ? [...prev, file] : prev.filter((f) => f !== file),
 		);
 	};
-
-	console;
 
 	return (
 		<div className="flex flex-col h-full">
