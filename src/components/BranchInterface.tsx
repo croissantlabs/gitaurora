@@ -11,7 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Path } from "@/db/dexie";
 import { type Branch, useGitCommand } from "@/hooks/useGitCommand";
 import { invoke } from "@tauri-apps/api/core";
-import { Check, GitBranch, Loader, LoaderCircle, Plus } from "lucide-react";
+import { Check, GitBranch, LoaderCircle, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router";
 

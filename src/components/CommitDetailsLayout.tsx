@@ -42,6 +42,7 @@ export const CommitDetailsLayout = () => {
 		}
 	};
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
 		fetchCommits();
 	}, [commitId]);

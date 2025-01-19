@@ -6,7 +6,6 @@ import { Outlet, useOutletContext } from "react-router";
 import { CurrentChangeInterface } from "./CurrentChangeInterface";
 
 import { invoke } from "@tauri-apps/api/core";
-import { LoaderCircle } from "lucide-react";
 import {
 	ResizableHandle,
 	ResizablePanel,
