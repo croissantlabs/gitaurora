@@ -43,15 +43,15 @@ const router = createBrowserRouter([
 											},
 										],
 									},
-								],
-							},
-							{
-								path: "current_change",
-								element: <CurrentChangeLayout />,
-								children: [
 									{
-										path: "filename/:filenameId",
-										element: <ChangeDiff />,
+										path: "current_change",
+										element: <CurrentChangeLayout />,
+										children: [
+											{
+												path: "filename/:filenameId",
+												element: <ChangeDiff />,
+											},
+										],
 									},
 								],
 							},

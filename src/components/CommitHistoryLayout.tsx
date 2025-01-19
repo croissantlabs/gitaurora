@@ -41,7 +41,7 @@ export const CommitHistoryLayout = () => {
 			</ResizablePanel>
 			<ResizableHandle />
 			<ResizablePanel>
-				<Outlet context={commits} />
+				<Outlet context={path} />
 			</ResizablePanel>
 		</ResizablePanelGroup>
 	);

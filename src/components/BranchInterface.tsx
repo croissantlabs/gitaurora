@@ -11,7 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Path } from "@/db/dexie";
 import { type Branch, useGitCommand } from "@/hooks/useGitCommand";
 import { invoke } from "@tauri-apps/api/core";
-import { Check, GitBranch, Plus } from "lucide-react";
+import { Check, GitBranch, Loader, LoaderCircle, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router";
 
@@ -36,6 +36,7 @@ const mergeWithCurrentBranch = async (
 
 export const BranchInterface = ({ path }: Props) => {
 	const navigate = useNavigate();
+	const [isLoading, setIsLoading] = useState(true);
 	const [branches, setBranches] = useState<Branch[]>();
 	const [isCurrentlyCreatingBranch, setIsCurrentlyCreatingBranch] =
 		useState(false);
@@ -43,7 +44,9 @@ export const BranchInterface = ({ path }: Props) => {
 	const { getAllGitBranches, createBranch, switchBranch } = useGitCommand();
 
 	const fetchBranches = async () => {
+		setIsLoading(true);
 		const allBranches = await getAllGitBranches(path.path);
+		setIsLoading(false);
 		setBranches(allBranches);
 	};
 
@@ -115,11 +118,23 @@ export const BranchInterface = ({ path }: Props) => {
 				</CardHeader>
 			)}
 			<ScrollArea className="h-full">
+				<div>
+					{isLoading && (
+						<div className="flex items-center justify-center h-16">
+							<LoaderCircle className="animate-spin" />
+						</div>
+					)}
+					{!branches?.length && !isLoading && (
+						<div className="text-center text-sm text-muted">
+							No branches found
+						</div>
+					)}
+				</div>
 				{branches?.map((branch) => (
 					<ContextMenu key={branch.name}>
 						<ContextMenuTrigger>
 							<NavLink
-								to={`branch/${branch.name}/${branch.is_active ? "current_change" : "commits"}`}
+								to={`branch/${branch.name}/commits`}
 								onDoubleClick={() => checkoutBranch(branch.name)}
 							>
 								{({ isActive }) => (

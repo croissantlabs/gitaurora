@@ -83,6 +83,8 @@ export const CurrentChangeInterface = ({
 		);
 	};
 
+	console;
+
 	return (
 		<div className="flex flex-col h-full">
 			<ScrollArea className="h-full">
@@ -125,6 +127,7 @@ export const CurrentChangeInterface = ({
 						onClick={onClickButtonCommit}
 						disabled={isLoading || !commitMessage || selectedFiles.length === 0}
 						className="flex-1"
+						size={"sm"}
 					>
 						{isLoading ? (
 							<LoaderCircle className="animate-spin" />

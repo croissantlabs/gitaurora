@@ -1,6 +1,7 @@
-import { db } from "@/db/dexie";
-import { type Commit, useGitCommand } from "@/hooks/useGitCommand";
-import { useLiveQuery } from "dexie-react-hooks";
+import type { Path } from "@/db/dexie";
+import type { Commit } from "@/hooks/useGitCommand";
+import { invoke } from "@tauri-apps/api/core";
+
 import { useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router";
 import { CommitDetailsInterface } from "./CommitDetailsInterface";
@@ -11,41 +12,50 @@ import {
 	ResizablePanelGroup,
 } from "./ui/resizable";
 
+const getChangeFromCommit = async (
+	directory: string,
+	commitId: string,
+): Promise<Commit> => {
+	try {
+		const change: Commit = await invoke("get_commit_changes", {
+			currentPath: directory,
+			commitId,
+		});
+
+		return change;
+	} catch (error) {
+		console.error("Error getting change from commit:", error);
+		throw error;
+	}
+};
+
 export const CommitDetailsLayout = () => {
-	const commits = useOutletContext<Commit[]>();
-	const { getChangeFromCommit } = useGitCommand();
+	const path = useOutletContext<Path>();
 	const [commitDetails, setCommitDetails] = useState<Commit | null>(null);
-	const { pathId, commitId } = useParams();
+	const { commitId } = useParams();
 
-	const path = useLiveQuery(
-		() => db.paths.where({ uuid: pathId }).first(),
-		[commitId, pathId],
-	);
-
-	const commit = commits.find((c) => c.id === commitId);
-
-	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
-	useEffect(() => {
+	const fetchCommits = async () => {
 		if (commitId && path?.path) {
-			const fetchCommits = async () => {
-				const commit = await getChangeFromCommit(path.path, commitId);
+			const commit = await getChangeFromCommit(path.path, commitId);
 
-				setCommitDetails(commit);
-			};
-			fetchCommits();
+			setCommitDetails(commit);
 		}
-	}, [commitId, path?.path]);
+	};
 
-	if (!commit) {
+	useEffect(() => {
+		fetchCommits();
+	}, [commitId]);
+
+	if (!commitDetails) {
 		return null;
 	}
 
 	return (
 		<div className="h-full flex flex-col">
 			<CardContent className="border-b border-border p-4">
-				<h3 className="font-semibold">{commit.message}</h3>
+				<h3 className="font-semibold">{commitDetails.message}</h3>
 				<p className="text-sm text-muted-foreground">
-					{commit.author} - {commit.date} - {commit.id}
+					{commitDetails.author} - {commitDetails.date} - {commitDetails.id}
 				</p>
 			</CardContent>
 			<ResizablePanelGroup direction="horizontal">

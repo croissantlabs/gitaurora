@@ -1,6 +1,7 @@
 import type { Commit } from "@/hooks/useGitCommand";
-import { GitCommit } from "lucide-react";
+import { File, GitCommit } from "lucide-react";
 import { NavLink } from "react-router";
+import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
 
 interface Props {
@@ -9,8 +10,21 @@ interface Props {
 
 export const CommitHistoryInterface = ({ commits }: Props) => {
 	return (
-		<ScrollArea className="border-r border-border h-full">
-			<ul>
+		<div className="border-r border-border h-full flex flex-col">
+			<NavLink to={"current_change"} className={"flex items-center p-2"}>
+				{({ isActive }) => (
+					<>
+						<File className="mr-2" size={18} />
+						<Button
+							className={`w-full gap-2 ${isActive ? "bg-blue-500" : ""}`}
+							variant={"secondary"}
+						>
+							<div className="text-sm">Changes</div>
+						</Button>
+					</>
+				)}
+			</NavLink>
+			<ScrollArea className="h-full">
 				{commits?.map((commit) => (
 					<NavLink
 						to={commit.id}
@@ -33,7 +47,7 @@ export const CommitHistoryInterface = ({ commits }: Props) => {
 						</div>
 					</NavLink>
 				))}
-			</ul>
-		</ScrollArea>
+			</ScrollArea>
+		</div>
 	);
 };
