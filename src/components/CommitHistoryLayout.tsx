@@ -1,5 +1,5 @@
 import type { Path } from "@/db/dexie";
-import type { Commit } from "@/types/git";
+import type { Branch, Commit } from "@/types/git";
 import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router";
@@ -27,9 +27,16 @@ const getAllCommitsFromBranch = async (
 	}
 };
 
+interface CommitHistoryLayoutContext {
+	path: Path;
+	branches: Branch[];
+}
+
 export const CommitHistoryLayout = () => {
-	const path = useOutletContext<Path>();
+	const context = useOutletContext<CommitHistoryLayoutContext>();
+	const { path, branches } = context;
 	const { branchId } = useParams();
+	const currentBranch = branches.find((branch) => branch.name === branchId);
 	const [commits, setCommits] = useState<Commit[]>([]);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
@@ -54,7 +61,9 @@ export const CommitHistoryLayout = () => {
 				className=" border-r border-border h-full flex flex-col"
 				defaultSize={20}
 			>
-				<CommitHistoryInterface commits={commits} />
+				{currentBranch && (
+					<CommitHistoryInterface commits={commits} branch={currentBranch} />
+				)}
 			</ResizablePanel>
 			<ResizableHandle />
 			<ResizablePanel>

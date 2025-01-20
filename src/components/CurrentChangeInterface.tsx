@@ -96,6 +96,9 @@ export const CurrentChangeInterface = ({
 
 	return (
 		<div className="flex flex-col h-full">
+			<div className="bg-muted/50 p-2">
+				<h2 className="text-sm font-medium">{changes?.length} files changed</h2>
+			</div>
 			<ScrollArea className="h-full">
 				<div className="flex flex-col p-2 gap-2">
 					{changes?.map((change, index) => (
