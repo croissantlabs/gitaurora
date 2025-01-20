@@ -16,3 +16,22 @@ export interface GraphNode {
 		points: Array<{ x: number; y: number }>;
 	}>;
 }
+
+export interface Branch {
+	name: string;
+	is_remote: boolean;
+	is_head: boolean;
+}
+
+export interface Commit {
+	id: string;
+	author: string;
+	email: string;
+	message: string;
+	timestamp: number;
+}
+
+export interface FileChange {
+	path: string;
+	status: string;
+}

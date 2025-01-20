@@ -9,7 +9,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Path } from "@/db/dexie";
-import { type Branch, useGitCommand } from "@/hooks/useGitCommand";
+import { useGitCommand } from "@/hooks/useGitCommand";
+import type { Branch } from "@/types/git";
 import { invoke } from "@tauri-apps/api/core";
 import { Check, GitBranch, LoaderCircle, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -34,6 +35,20 @@ const mergeWithCurrentBranch = async (
 	}
 };
 
+const getBranchList = async (directory: string): Promise<Branch[]> => {
+	try {
+		const branches: Branch[] = await invoke("get_branch_list", {
+			directory,
+		});
+		console.log(branches);
+
+		return branches;
+	} catch (error) {
+		console.error("Error getting all branches:", error);
+		throw error;
+	}
+};
+
 export const BranchInterface = ({ path }: Props) => {
 	const navigate = useNavigate();
 	const [isLoading, setIsLoading] = useState(true);
@@ -41,11 +56,11 @@ export const BranchInterface = ({ path }: Props) => {
 	const [isCurrentlyCreatingBranch, setIsCurrentlyCreatingBranch] =
 		useState(false);
 	const [newBranchName, setNewBranchName] = useState("");
-	const { getAllGitBranches, createBranch, switchBranch } = useGitCommand();
+	const { createBranch, switchBranch } = useGitCommand();
 
 	const fetchBranches = async () => {
 		setIsLoading(true);
-		const allBranches = await getAllGitBranches(path.path);
+		const allBranches = await getBranchList(path.path);
 		setIsLoading(false);
 		setBranches(allBranches);
 	};

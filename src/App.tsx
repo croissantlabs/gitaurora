@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { RouterProvider, createBrowserRouter } from "react-router";
 import AppLayout from "./components/AppLayout";
 import { ChangeDiff } from "./components/ChangeDiff";
+import { CommitChangeDiffContainer } from "./components/CommitChangeDiff";
 import { CommitDetailsLayout } from "./components/CommitDetailsLayout";
 import { CommitHistoryLayout } from "./components/CommitHistoryLayout";
 import { CommitLayout } from "./components/CommitLayout";
@@ -39,7 +40,7 @@ const router = createBrowserRouter([
 										children: [
 											{
 												path: "filename/:filenameId",
-												element: <ChangeDiff />,
+												element: <CommitChangeDiffContainer />,
 											},
 										],
 									},

@@ -2,17 +2,15 @@
 use serde::Serialize;
 use std::process::Command;
 use std::str::from_utf8;
-
-#[derive(Serialize)]
-struct Branch {
-    id: String,
-    name: String,
-    is_active: bool,
-}
+mod gitfunction;
+use gitfunction::get_branch_list;
+use gitfunction::get_all_commits_from_branch;
+use gitfunction::get_changed_files_in_commit;
+use gitfunction::get_diff_of_file_in_commit;
 
 #[tauri::command]
 async fn push_current_branch (directory: String) -> Result<(), String> {
-    let output = Command::new("git")
+    let _output = Command::new("git")
         .arg("push")
         .current_dir(directory)
         .output()
@@ -23,7 +21,7 @@ async fn push_current_branch (directory: String) -> Result<(), String> {
 
 #[tauri::command]
 async fn merge_with_current_branch (directory: String, branch_name: String) -> Result<(), String> {
-    let output = Command::new("git")
+    let _output = Command::new("git")
         .args(["merge", &branch_name])
         .current_dir(directory)
         .output()
@@ -34,7 +32,7 @@ async fn merge_with_current_branch (directory: String, branch_name: String) -> R
 
 #[tauri::command]
 async fn fetch (directory: String) -> Result<(), String> {
-    let output = Command::new("git")
+    let _output = Command::new("git")
         .arg("fetch")
         .current_dir(directory)
         .output()
@@ -45,7 +43,7 @@ async fn fetch (directory: String) -> Result<(), String> {
 
 #[tauri::command]
 async fn pull (directory: String) -> Result<(), String> {
-    let output = Command::new("git")
+    let _output = Command::new("git")
         .args(["pull", "--rebase"])
         .current_dir(directory)
         .output()
@@ -89,44 +87,6 @@ async fn git_add_and_commit(
     Ok(())
 }
 
-#[tauri::command]
-async fn get_all_git_branches(current_path: String) -> Vec<Branch> {
-    let output = Command::new("git")
-        .arg("branch")
-        .current_dir(current_path)
-        .output()
-        .expect("Failed to execute git command");
-
-    let branches = from_utf8(&output.stdout)
-        .expect("Failed to convert output to UTF-8")
-        .lines()
-        .map(|line| {
-            let trimmed = line.trim();
-            let is_active = trimmed.starts_with('*');
-            let name = if is_active {
-                trimmed[2..].to_string()
-            } else {
-                trimmed.to_string()
-            };
-            Branch {
-                id: name.clone(),
-                name,
-                is_active,
-            }
-        })
-        .collect::<Vec<Branch>>();
-
-    branches
-}
-
-#[derive(Serialize)]
-struct Commit {
-    id: String,
-    author: String,
-    date: String,
-    message: String,
-}
-
 #[derive(Serialize)]
 struct Change {
     filename: String,
@@ -141,37 +101,6 @@ struct CommitChanges {
     author: String,
     date: String,
     changes: Vec<Change>,
-}
-
-#[tauri::command]
-async fn get_all_commits_from_branch(current_path: String, branch_name: String) -> Vec<Commit> {
-    let output = Command::new("git")
-        .arg("log")
-        .arg("--pretty=format:%h|%an|%ar|%s")
-        .arg(&branch_name)
-        .current_dir(&current_path)
-        .output()
-        .expect("Failed to execute git command");
-
-    let commits = from_utf8(&output.stdout)
-        .expect("Failed to convert output to UTF-8")
-        .lines()
-        .filter_map(|line| {
-            let parts: Vec<&str> = line.split('|').collect();
-            if parts.len() == 4 {
-                Some(Commit {
-                    id: parts[0].trim().to_string(),
-                    author: parts[1].trim().to_string(),
-                    date: parts[2].trim().to_string(),
-                    message: parts[3].trim().to_string(),
-                })
-            } else {
-                None
-            }
-        })
-        .collect::<Vec<Commit>>();
-
-    commits
 }
 
 // a function to create a new branch
@@ -232,6 +161,8 @@ struct GitDiff {
     status: String,
     diff: String,
 }
+
+// a function to get the diffs of a file for a commitId
 
 fn get_file_diffs(commit_id: &str, current_path: &str) -> Vec<GitDiff> {
     let show_command = Command::new("git")
@@ -631,8 +562,10 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
-            get_all_git_branches,
+            get_branch_list,
             get_all_commits_from_branch,
+            get_changed_files_in_commit,
+            get_diff_of_file_in_commit,
             create_new_branch,
             switch_branch,
             push_current_branch,
