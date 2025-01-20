@@ -27,7 +27,10 @@ export const CommitChangeDiff = ({ fileDiff, filename }: Props) => {
 		}
 	};
 
-	const diffFile = new DiffFile("", "", "", "", [fileDiff], "");
+	const parts = filename.split(".");
+	const extension = parts[parts.length - 1];
+
+	const diffFile = new DiffFile("", "", "", "", [fileDiff], extension);
 	diffFile.init();
 	diffFile.buildSplitDiffLines();
 	diffFile.buildUnifiedDiffLines();
@@ -108,10 +111,7 @@ export const CommitChangeDiffContainer = () => {
 
 	useEffect(() => {
 		fetchCurrentChange();
-	}, [commitId, filenameId]);
-
-	console.log(filename);
-	console.log(isLoading);
+	}, [filenameId]);
 
 	if (isLoading || !fileDiff) {
 		return (

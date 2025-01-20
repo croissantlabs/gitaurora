@@ -28,7 +28,11 @@ export const CurrentChangeDiff = ({ filename, diff }: Props) => {
 	};
 
 	console.log(diff);
-	const diffFile = new DiffFile("", "", "", "", [diff], "ts");
+	// a function to get the filename extension
+	const parts = filename.split(".");
+	const extension = parts[parts.length - 1];
+
+	const diffFile = new DiffFile("", "", "", "", [diff], extension);
 	diffFile.init();
 	diffFile.buildSplitDiffLines();
 	diffFile.buildUnifiedDiffLines();
