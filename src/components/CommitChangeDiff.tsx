@@ -109,6 +109,7 @@ export const CommitChangeDiffContainer = () => {
 		}
 	};
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
 		fetchCurrentChange();
 	}, [filenameId]);

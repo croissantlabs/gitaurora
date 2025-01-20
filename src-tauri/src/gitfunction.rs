@@ -169,35 +169,6 @@ pub async fn get_diff_of_file_in_commit(directory: String, commit_hash: String, 
     Ok(diff_output.to_string())
 }
 
-fn clean_diff(diff: String) -> String {
-    let mut lines: Vec<&str> = diff.lines().collect();
-
-    // Remove the "F" from the first line if it exists
-    if let Some(first_line) = lines.first_mut() {
-        if first_line.starts_with('F') {
-            *first_line = &first_line[1..];
-        }
-    }
-
-    // Remove the "H" from the line starting with "@@"
-    for line in lines.iter_mut() {
-        if line.starts_with("H@@") {
-            *line = &line[1..];
-        }
-    }
-
-    // Remove any empty lines at the end of the diff
-    while let Some(last_line) = lines.last() {
-        if last_line.trim().is_empty() {
-            lines.pop();
-        } else {
-            break;
-        }
-    }
-
-    lines.join("\n")
-}
-
 // a function to get all the current files changed, added, deleted, or modified
 #[tauri::command]
 pub async fn get_all_changed_files(directory: String) -> Result<Vec<FileChange>, String> {

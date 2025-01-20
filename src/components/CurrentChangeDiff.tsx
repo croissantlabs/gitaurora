@@ -111,6 +111,7 @@ export const CurrentChangeDiffContainer = () => {
 		}
 	};
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
 		getDiff();
 	}, [filenameId]);
