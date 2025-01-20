@@ -180,6 +180,15 @@ fn clean_diff(diff: String) -> String {
         }
     }
 
+    // Remove any empty lines at the end of the diff
+    while let Some(last_line) = lines.last() {
+        if last_line.trim().is_empty() {
+            lines.pop();
+        } else {
+            break;
+        }
+    }
+
     lines.join("\n")
 }
 
