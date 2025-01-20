@@ -94,7 +94,7 @@ export const CurrentChangeDiffContainer = () => {
 	const [diff, setDiff] = useState<string>("");
 	const { fileChanges, path } = context;
 	const [isLoading, setIsLoading] = useState(true);
-	const filename = fileChanges[Number(filenameId)].path;
+	const filename = fileChanges?.[Number(filenameId)]?.path;
 
 	const getDiff = async () => {
 		if (filenameId && path?.path) {

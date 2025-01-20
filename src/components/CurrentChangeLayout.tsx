@@ -1,10 +1,10 @@
 import type { Path } from "@/db/dexie";
 
-import type { FileChange } from "@/hooks/useGitCommand";
 import { useEffect, useState } from "react";
 import { Outlet, useOutletContext } from "react-router";
 import { CurrentChangeInterface } from "./CurrentChangeInterface";
 
+import type { FileChange } from "@/types/git";
 import { invoke } from "@tauri-apps/api/core";
 import {
 	ResizableHandle,
@@ -16,8 +16,8 @@ const getCurrentChangeFile = async (
 	directory: string,
 ): Promise<FileChange[]> => {
 	try {
-		const change: FileChange[] = await invoke("get_current_changes_status", {
-			currentPath: directory,
+		const change: FileChange[] = await invoke("get_all_changed_files", {
+			directory,
 		});
 
 		return change;
@@ -63,7 +63,7 @@ export const CurrentChangeLayout = () => {
 			</ResizablePanel>
 			<ResizableHandle />
 			<ResizablePanel>
-				<Outlet context={changes} />
+				{changes.length && <Outlet context={{ fileChanges: changes, path }} />}
 			</ResizablePanel>
 		</ResizablePanelGroup>
 	);
