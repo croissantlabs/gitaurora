@@ -1,5 +1,5 @@
 import type { Path } from "@/db/dexie";
-import { type Commit, useGitCommand } from "@/hooks/useGitCommand";
+import type { Commit } from "@/types/git";
 import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router";

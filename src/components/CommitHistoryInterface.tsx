@@ -1,4 +1,4 @@
-import type { Commit } from "@/hooks/useGitCommand";
+import type { Commit } from "@/types/git";
 import { File, GitCommit } from "lucide-react";
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router";
