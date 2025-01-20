@@ -63,7 +63,11 @@ export const CurrentChangeLayout = () => {
 			</ResizablePanel>
 			<ResizableHandle />
 			<ResizablePanel>
-				{changes.length && <Outlet context={{ fileChanges: changes, path }} />}
+				{changes.length ? (
+					<Outlet context={{ fileChanges: changes, path }} />
+				) : (
+					<div />
+				)}
 			</ResizablePanel>
 		</ResizablePanelGroup>
 	);
