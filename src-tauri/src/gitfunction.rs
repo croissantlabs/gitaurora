@@ -104,32 +104,46 @@ pub fn get_changed_files_in_commit(directory: String, commit_hash: String) -> Ve
     let commit_oid = Oid::from_str(&commit_hash).expect("Invalid commit hash");
     let commit = repo.find_commit(commit_oid).expect("Failed to find commit");
 
-    let parent = commit.parent(0).expect("Failed to get parent commit");
-    let parent_tree = parent.tree().expect("Failed to get parent tree");
-    let commit_tree = commit.tree().expect("Failed to get commit tree");
-
-    let mut diff_opts = DiffOptions::new();
-    let diff = repo.diff_tree_to_tree(Some(&parent_tree), Some(&commit_tree), Some(&mut diff_opts))
-        .expect("Failed to create diff");
-
     let mut file_changes = Vec::new();
 
-    diff.foreach(&mut |delta, _| {
-        if let Some(path) = delta.new_file().path() {
-            let status = match delta.status() {
-                git2::Delta::Added => "Added",
-                git2::Delta::Deleted => "Deleted",
-                git2::Delta::Modified => "Modified",
-                git2::Delta::Renamed => "Renamed",
-                _ => "Other",
-            };
-            file_changes.push(FileChange {
-                path: path.to_string_lossy().into_owned(),
-                status: status.to_string(),
-            });
-        }
-        true
-    }, None, None, None).expect("Failed to iterate over diff");
+    // Check if the commit has a parent
+    if let Ok(parent) = commit.parent(0) {
+        let parent_tree = parent.tree().expect("Failed to get parent tree");
+        let commit_tree = commit.tree().expect("Failed to get commit tree");
+
+        let mut diff_opts = DiffOptions::new();
+        let diff = repo.diff_tree_to_tree(Some(&parent_tree), Some(&commit_tree), Some(&mut diff_opts))
+            .expect("Failed to create diff");
+
+        diff.foreach(&mut |delta, _| {
+            if let Some(path) = delta.new_file().path() {
+                let status = match delta.status() {
+                    git2::Delta::Added => "Added",
+                    git2::Delta::Deleted => "Deleted",
+                    git2::Delta::Modified => "Modified",
+                    git2::Delta::Renamed => "Renamed",
+                    _ => "Other",
+                };
+                file_changes.push(FileChange {
+                    path: path.to_string_lossy().into_owned(),
+                    status: status.to_string(),
+                });
+            }
+            true
+        }, None, None, None).expect("Failed to iterate over diff");
+    } else {
+        // For the first commit, treat all files as added
+        let tree = commit.tree().expect("Failed to get commit tree");
+        tree.walk(git2::TreeWalkMode::PreOrder, |_, entry| {
+            if let Some(path) = entry.name() {
+                file_changes.push(FileChange {
+                    path: path.to_string(),
+                    status: "Added".to_string(),
+                });
+            }
+            git2::TreeWalkResult::Ok
+        }).expect("Failed to walk tree");
+    }
 
     file_changes
 }
@@ -138,29 +152,21 @@ use std::path::Path;
 
 #[tauri::command]
 pub async fn get_diff_of_file_in_commit(directory: String, commit_hash: String, filename: String) -> Result<String, String> {
-    let repo = Repository::open(directory).map_err(|e| e.to_string())?;
-    let commit = repo.find_commit(repo.revparse_single(&commit_hash).map_err(|e| e.to_string())?.id()).map_err(|e| e.to_string())?;
-    let parent = commit.parent(0).map_err(|e| e.to_string())?;
+    let show_command = Command::new("git")
+        .current_dir(&directory)
+        .args(&["show", "--pretty=", &commit_hash, "--", &filename])
+        .output()
+        .map_err(|e| format!("Failed to execute git show command: {}", e))?;
 
-    let mut diff_options = DiffOptions::new();
-    diff_options.pathspec(filename);
+    if !show_command.status.success() {
+        return Err(format!("Git command failed: {}",
+            from_utf8(&show_command.stderr).unwrap_or("Unknown error")));
+    }
 
-    let diff = repo.diff_tree_to_tree(
-        Some(&parent.tree().map_err(|e| e.to_string())?),
-        Some(&commit.tree().map_err(|e| e.to_string())?),
-        Some(&mut diff_options)
-    ).map_err(|e| e.to_string())?;
+    let diff_output = from_utf8(&show_command.stdout)
+        .map_err(|e| format!("Failed to parse git output: {}", e))?;
 
-    let mut diff_output = String::new();
-    diff.print(git2::DiffFormat::Patch, |_delta, _hunk, line| {
-        use std::str;
-        if let Ok(content) = str::from_utf8(line.content()) {
-            diff_output.push_str(&format!("{}{}", line.origin(), content));
-        }
-        true
-    }).map_err(|e| e.to_string())?;
-
-    Ok(clean_diff(diff_output))
+    Ok(diff_output.to_string())
 }
 
 fn clean_diff(diff: String) -> String {
