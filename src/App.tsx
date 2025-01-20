@@ -4,11 +4,11 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { useEffect } from "react";
 import { RouterProvider, createBrowserRouter } from "react-router";
 import AppLayout from "./components/AppLayout";
-import { ChangeDiff } from "./components/ChangeDiff";
 import { CommitChangeDiffContainer } from "./components/CommitChangeDiff";
 import { CommitDetailsLayout } from "./components/CommitDetailsLayout";
 import { CommitHistoryLayout } from "./components/CommitHistoryLayout";
 import { CommitLayout } from "./components/CommitLayout";
+import { CurrentChangeDiffContainer } from "./components/CurrentChangeDiff";
 import { CurrentChangeLayout } from "./components/CurrentChangeLayout";
 import SelectDirectoryView from "./components/SelectDirectoryView";
 import { getUpdate } from "./lib/utils";
@@ -50,7 +50,7 @@ const router = createBrowserRouter([
 										children: [
 											{
 												path: "filename/:filenameId",
-												element: <ChangeDiff />,
+												element: <CurrentChangeDiffContainer />,
 											},
 										],
 									},

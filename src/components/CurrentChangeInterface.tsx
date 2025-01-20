@@ -1,7 +1,7 @@
 import { Textarea } from "@/components/ui/textarea";
 import type { Path } from "@/db/dexie";
 import { useToast } from "@/hooks/use-toast";
-import type { FileChange } from "@/hooks/useGitCommand";
+import type { FileChange } from "@/types/git";
 import { invoke } from "@tauri-apps/api/core";
 import { ArrowBigUp, LoaderCircle } from "lucide-react";
 import { useState } from "react";
@@ -57,7 +57,7 @@ export const CurrentChangeInterface = ({
 	fetchChanges,
 }: Props) => {
 	const [selectedFiles, setSelectedFiles] = useState<string[]>(
-		changes.map((change) => change.filename),
+		changes.map((change) => change.path),
 	);
 	const { toast } = useToast();
 
@@ -101,22 +101,22 @@ export const CurrentChangeInterface = ({
 					{changes?.map((change, index) => (
 						<NavLink
 							to={`filename/${index}`}
-							key={change.filename}
+							key={change.path}
 							className="overflow-hidden"
 						>
 							{({ isActive }) => (
 								<div className="px-2 flex items-center gap-2">
 									<Checkbox
-										checked={selectedFiles.includes(change.filename)}
+										checked={selectedFiles.includes(change.path)}
 										onCheckedChange={(checked) =>
-											handleSelectChange(change.filename, checked as boolean)
+											handleSelectChange(change.path, checked as boolean)
 										}
 									/>
 									<Button
 										variant="ghost"
 										className={`w-full justify-start gap-2 text-sm ${isActive ? "bg-blue-500" : ""}`}
 									>
-										{change.filename}
+										{change.path}
 									</Button>
 								</div>
 							)}

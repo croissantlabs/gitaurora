@@ -74,8 +74,8 @@ export const AppFooter = ({ path }: Props) => {
 		} catch (error) {
 			toast({
 				title: "Error pushing changes",
-				description: error,
-				status: "error",
+				description: error as string,
+				variant: "destructive",
 			});
 		}
 

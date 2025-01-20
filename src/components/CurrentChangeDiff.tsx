@@ -11,13 +11,13 @@ import { useTheme } from "./theme-provider";
 import { Button } from "./ui/button";
 
 interface Props {
-	fileDiff: string;
 	filename: string;
+	diff: string;
 }
 
-export const CommitChangeDiff = ({ fileDiff, filename }: Props) => {
+export const CurrentChangeDiff = ({ filename, diff }: Props) => {
 	const { theme } = useTheme();
-	const [diffViewMode, setDiffViewMode] = useState(DiffModeEnum.Unified);
+	const [diffViewMode, setDiffViewMode] = useState(DiffModeEnum.Split);
 
 	const onClickButtonChangeDiffView = () => {
 		if (diffViewMode === DiffModeEnum.Split) {
@@ -27,12 +27,14 @@ export const CommitChangeDiff = ({ fileDiff, filename }: Props) => {
 		}
 	};
 
-	const diffFile = new DiffFile("", "", "", "", [fileDiff], "");
+	console.log(diff);
+	const diffFile = new DiffFile("", "", "", "", [diff], "ts");
 	diffFile.init();
 	diffFile.buildSplitDiffLines();
 	diffFile.buildUnifiedDiffLines();
 	const data = diffFile._getFullBundle();
 	const stringData = JSON.stringify(data);
+
 	const file = DiffFile.createInstance({}, JSON.parse(stringData));
 
 	return (
@@ -64,62 +66,58 @@ export const CommitChangeDiff = ({ fileDiff, filename }: Props) => {
 	);
 };
 
-const getDiffOfFileInCommit = async (
+const getDiffOfFile = async (
 	directory: string,
-	commitHash: string,
 	filename: string,
 ): Promise<string> => {
 	try {
-		const diff: string = await invoke("get_diff_of_file_in_commit", {
+		const diff: string = await invoke("get_diff_of_file", {
 			directory,
-			commitHash,
 			filename,
 		});
 
 		return diff;
 	} catch (error) {
-		console.error("Error getting diff of file in commit:", error);
+		console.error(error);
 		throw error;
 	}
 };
 
-interface CommitChangeDiffContext {
-	files: FileChange[];
+interface CurrentChangeDiffContext {
+	fileChanges: FileChange[];
 	path: Path;
 }
 
-export const CommitChangeDiffContainer = () => {
-	const { filenameId, commitId } = useParams();
+export const CurrentChangeDiffContainer = () => {
+	const context = useOutletContext<CurrentChangeDiffContext>();
+	const { filenameId } = useParams();
+	const [diff, setDiff] = useState<string>("");
+	const { fileChanges, path } = context;
 	const [isLoading, setIsLoading] = useState(true);
-	const context = useOutletContext<CommitChangeDiffContext>();
-	const [fileDiff, setFile] = useState<string>();
-	const { path, files } = context;
-	const filename = files[Number(filenameId) || 0].path;
+	const filename = fileChanges[Number(filenameId)].path;
 
-	const fetchCurrentChange = async () => {
-		setIsLoading(true);
-		if (commitId && path?.path) {
-			const change = await getDiffOfFileInCommit(path.path, commitId, filename);
+	const getDiff = async () => {
+		if (filenameId && path?.path) {
+			setIsLoading(true);
+			const diff = await getDiffOfFile(path.path, filename);
 
-			setFile(change);
+			console.log(diff);
+			setDiff(diff);
 			setIsLoading(false);
 		}
 	};
 
 	useEffect(() => {
-		fetchCurrentChange();
-	}, [commitId, filenameId]);
+		getDiff();
+	}, [filenameId]);
 
-	console.log(filename);
-	console.log(isLoading);
-
-	if (isLoading || !fileDiff) {
+	if (isLoading || !diff) {
 		return (
-			<div className="flex h-full items-center w-full justify-center">
-				<LoaderCircle className="animate-spin" />
+			<div className="flex items-center justify-center h-full">
+				<LoaderCircle className="animate-spin h-8 w-8" />
 			</div>
 		);
 	}
 
-	return <CommitChangeDiff fileDiff={fileDiff} filename={filename} />;
+	return <CurrentChangeDiff filename={filename} diff={diff} />;
 };

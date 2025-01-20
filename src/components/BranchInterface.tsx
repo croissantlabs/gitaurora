@@ -40,7 +40,6 @@ const getBranchList = async (directory: string): Promise<Branch[]> => {
 		const branches: Branch[] = await invoke("get_branch_list", {
 			directory,
 		});
-		console.log(branches);
 
 		return branches;
 	} catch (error) {
@@ -157,7 +156,7 @@ export const BranchInterface = ({ path }: Props) => {
 										variant="ghost"
 										className={`w-full justify-start gap-2 text-sm ${isActive ? "bg-blue-500" : ""}`}
 									>
-										{branch.is_active && (
+										{branch.is_head && (
 											<span className="h-2 w-2 rounded-full bg-green-500" />
 										)}
 										{branch.name}
@@ -165,7 +164,7 @@ export const BranchInterface = ({ path }: Props) => {
 								)}
 							</NavLink>
 						</ContextMenuTrigger>
-						{!branch.is_active && (
+						{!branch.is_head && (
 							<ContextMenuContent className="w-64">
 								<ContextMenuItem
 									onClick={() => onClickButtonMerge(branch.name)}

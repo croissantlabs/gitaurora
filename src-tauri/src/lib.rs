@@ -7,6 +7,8 @@ use gitfunction::get_branch_list;
 use gitfunction::get_all_commits_from_branch;
 use gitfunction::get_changed_files_in_commit;
 use gitfunction::get_diff_of_file_in_commit;
+use gitfunction::get_all_changed_files;
+use gitfunction::get_diff_of_file;
 
 #[tauri::command]
 async fn push_current_branch (directory: String) -> Result<(), String> {
@@ -566,6 +568,8 @@ pub fn run() {
             get_all_commits_from_branch,
             get_changed_files_in_commit,
             get_diff_of_file_in_commit,
+            get_all_changed_files,
+            get_diff_of_file,
             create_new_branch,
             switch_branch,
             push_current_branch,

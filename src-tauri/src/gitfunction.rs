@@ -1,4 +1,4 @@
-use git2::{Repository, BranchType, Oid, Error, DiffOptions, Tree, ObjectType, DiffFormat, DiffLine, DiffDelta, DiffHunk};
+use git2::{Repository, BranchType, Oid, Error, DiffOptions, Tree, ObjectType, DiffFormat, DiffLine, DiffDelta, DiffHunk, Status, StatusOptions};
 use serde::Serialize;
 
 #[derive(Serialize)]
@@ -181,4 +181,107 @@ fn clean_diff(diff: String) -> String {
     }
 
     lines.join("\n")
+}
+
+// a function to get all the current files changed, added, deleted, or modified
+#[tauri::command]
+pub async fn get_all_changed_files(directory: String) -> Result<Vec<FileChange>, String> {
+    let repo = match Repository::open(Path::new(&directory)) {
+        Ok(repo) => repo,
+        Err(_) => return Err("Failed to open repository".to_string()),
+    };
+
+    let mut opts = StatusOptions::new();
+    opts.include_untracked(true)
+        .recurse_untracked_dirs(true)
+        .include_ignored(false);
+
+    let statuses = match repo.statuses(Some(&mut opts)) {
+        Ok(statuses) => statuses,
+        Err(_) => return Err("Failed to get repository status".to_string()),
+    };
+
+    let mut changes = Vec::new();
+
+    for entry in statuses.iter() {
+        let path = match entry.path() {
+            Some(path) => path.to_string(),
+            None => continue,
+        };
+
+        let status = match entry.status() {
+            Status::INDEX_NEW | Status::WT_NEW => "Added",
+            Status::INDEX_MODIFIED | Status::WT_MODIFIED => "Modified",
+            Status::INDEX_DELETED | Status::WT_DELETED => "Deleted",
+            Status::INDEX_RENAMED | Status::WT_RENAMED => "Renamed",
+            _ => "Other",
+        };
+
+        changes.push(FileChange {
+            path,
+            status: status.to_string(),
+        });
+    }
+
+    Ok(changes)
+}
+
+use std::process::Command;
+use std::str::from_utf8;
+// a function to get the diff of a file added, changed, or deleted
+#[tauri::command]
+pub async fn get_diff_of_file(directory: String, filename: String) -> String {
+    let changed_files = Command::new("git")
+        .current_dir(&directory)
+        .args(&["status", "--porcelain"])
+        .output()
+        .expect("Failed to execute git command");
+
+    let changed_files_str =
+        from_utf8(&changed_files.stdout).expect("Failed to parse changed files");
+
+    // Check if the file is in the status list
+    let mut file_status = "unknown"; // Default status
+    for line in changed_files_str.lines() {
+        let parts: Vec<&str> = line.split_whitespace().collect();
+        if parts.len() < 2 {
+            continue;
+        }
+        if parts[1] == filename {
+            file_status = match parts[0] {
+                "M" => "modified",
+                "A" => "added",
+                "D" => "deleted",
+                "R" => "renamed",
+                "??" => "untracked",
+                _ => "unknown",
+            };
+            break;
+        }
+    }
+
+    // Only return diff if the file is modified, added, or untracked
+    if file_status == "unknown" {
+        return "No changes detected for this file.".to_string();
+    }
+
+    // Get the diff for the specified file
+    let diff = if file_status == "untracked" {
+        Command::new("git")
+            .current_dir(&directory)
+            .args(&["diff", "--unified=3", "/dev/null", &filename])
+            .output()
+            .expect("Failed to execute git command")
+    } else {
+        Command::new("git")
+            .current_dir(&directory)
+            .args(&["diff", "--unified=3", "--", &filename])
+            .output()
+            .expect("Failed to execute git command")
+    };
+
+    let diff_str = from_utf8(&diff.stdout).expect("Failed to parse diff");
+
+    // Return the diff as a string
+    diff_str.to_string()
 }

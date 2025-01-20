@@ -1,6 +1,5 @@
 import type { Commit } from "@/types/git";
 import { File, GitCommit } from "lucide-react";
-import { useEffect, useState } from "react";
 import { NavLink } from "react-router";
 import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
@@ -43,7 +42,7 @@ export const CommitHistoryInterface = ({ commits }: Props) => {
 						<div>
 							<div className="font-semibold">{commit.message}</div>
 							<div className="text-sm text-muted-foreground">
-								{commit.author} - {commit.date}
+								{commit.author} - {commit.timestamp}
 							</div>
 						</div>
 					</NavLink>
