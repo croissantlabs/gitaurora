@@ -150,7 +150,7 @@ jobs:
       - name: Checkout target repository
         uses: actions/checkout@v4
         with:
-          repository: monsieursam/gitaurora-release
+          repository: croissantlabs/gitaurora-release
           token: ${{ secrets.PAT_TOKEN }}
           path: target-repo
 
@@ -162,7 +162,7 @@ jobs:
             cp ./assets/gitaurora_x64.* ./target-repo/assets/
             cp ./assets/gitaurora_${{ steps.get_version.outputs.VERSION }}_* ./target-repo/assets/
             cd ./target-repo
-            sed -i 's|https://github.com/monsieursam/gitaurora|https://github.com/monsieursam/gitaurora-release|g' ./assets/latest.json
+            sed -i 's|https://github.com/croissantlabs/gitaurora|https://github.com/croissantlabs/gitaurora-release|g' ./assets/latest.json
             git config user.name github-actions
             git config user.email github-actions@github.com
             git add .
@@ -187,12 +187,3 @@ jobs:
             ./assets/gitaurora_aarch64.* \
             ./assets/gitaurora_x64.* \
             ./assets/latest.json
-      - name: Create GitHub Discussion
-        env:
-              GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
-        run: |
-              gh discussion create \
-                --repo ${{ github.repository }} \
-                --category "Announcements" \
-                --title "New Release: v${{ steps.get_version.outputs.VERSION }}" \
-                --body "We're excited to announce the release of v${{ steps.get_version.outputs.VERSION }}! Check out the [release page](https://github.com/${{ github.repository }}/releases/tag/app-v${{ steps.get_version.outputs.VERSION }}) for more details and download links."
