@@ -36,4 +36,14 @@ export const savePath = async (currentPath: string) => {
 	}
 };
 
+// a function to remplace all the path by an array of paths
+export const savePaths = async (allPaths: Path[]) => {
+	try {
+		await db.paths.bulkAdd(allPaths);
+		console.log("Paths saved successfully");
+	} catch (error) {
+		console.error("Failed to save paths:", error);
+	}
+};
+
 export { db };

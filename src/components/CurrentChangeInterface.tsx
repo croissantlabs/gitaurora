@@ -3,7 +3,7 @@ import type { Path } from "@/db/dexie";
 import { useToast } from "@/hooks/use-toast";
 import type { FileChange } from "@/types/git";
 import { invoke } from "@tauri-apps/api/core";
-import { ArrowBigUp, LoaderCircle } from "lucide-react";
+import { ArrowBigUp, LoaderCircle, Trash } from "lucide-react";
 import { useState } from "react";
 import { NavLink } from "react-router";
 import { Button } from "./ui/button";
@@ -99,8 +99,11 @@ export const CurrentChangeInterface = ({
 
 	return (
 		<div className="flex flex-col h-full">
-			<div className="bg-muted/50 p-2">
+			<div className="bg-muted/50 px-2 flex items-center justify-between">
 				<h2 className="text-sm font-medium">{changes?.length} files changed</h2>
+				<Button size={"sm"} variant={"ghost"} disabled>
+					<Trash />
+				</Button>
 			</div>
 			<ScrollArea className="h-full">
 				<div className="flex flex-col p-2 gap-2">
@@ -133,7 +136,7 @@ export const CurrentChangeInterface = ({
 
 			<CardFooter className="flex flex-col items-stretch gap-4 pt-4">
 				<Textarea
-					placeholder="Enter commit message"
+					placeholder="Commit message"
 					value={commitMessage}
 					onChange={(e) => setCommitMessage(e.target.value)}
 				/>

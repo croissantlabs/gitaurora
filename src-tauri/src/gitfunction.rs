@@ -1,4 +1,4 @@
-use git2::{Repository, BranchType, Oid, Error, DiffOptions, Tree, ObjectType, DiffFormat, DiffLine, DiffDelta, DiffHunk, Status, StatusOptions};
+use git2::{Repository, BranchType, Oid, DiffOptions, Status, StatusOptions};
 use serde::Serialize;
 
 #[derive(Serialize)]

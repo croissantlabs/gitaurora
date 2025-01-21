@@ -162,7 +162,7 @@ jobs:
             cp ./assets/gitaurora_x64.* ./target-repo/assets/
             cp ./assets/gitaurora_${{ steps.get_version.outputs.VERSION }}_* ./target-repo/assets/
             cd ./target-repo
-            sed -i 's|https://github.com/croissantlabs/gitaurora|https://github.com/croissantlabs/gitaurora-release|g' ./assets/latest.json
+            sed -i 's|https://github.com/croissantlabs/gitaurora|https://github.com/croissantlabs/gitaurora-releases|g' ./assets/latest.json
             git config user.name github-actions
             git config user.email github-actions@github.com
             git add .

@@ -1,6 +1,7 @@
 import type { Branch, Commit } from "@/types/git";
-import { File, GitCommit, LoaderCircle } from "lucide-react";
+import { File, LoaderCircle } from "lucide-react";
 import { NavLink } from "react-router";
+import { CommitNavigation } from "./CommitNavigation";
 import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
 
@@ -39,27 +40,7 @@ export const CommitHistoryInterface = ({
 					</div>
 				)}
 				{commits?.map((commit) => (
-					<NavLink
-						to={commit.id}
-						key={commit.id}
-						className={({ isActive }) =>
-							`flex items-center p-2 cursor-pointer ${isActive ? "bg-accent text-accent-foreground" : ""}`
-						}
-					>
-						{/* {commit.isMerge ? (
-									<GitMerge className="mr-2" size={18} />
-								) : (
-									<GitCommit className="mr-2" size={18} />
-								)} */}
-						<GitCommit className="mr-2" size={18} />
-						<div>
-							<div className="font-semibold">{commit.message}</div>
-							<div className="text-sm text-muted-foreground">
-								{commit.author} -{" "}
-								{new Date(commit.timestamp * 1000).toLocaleString()}
-							</div>
-						</div>
-					</NavLink>
+					<CommitNavigation key={commit.id} commit={commit} />
 				))}
 			</ScrollArea>
 		</div>

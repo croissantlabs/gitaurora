@@ -61,7 +61,7 @@ export const BranchNavigation = ({ branch, path, fetchBranches }: Props) => {
 	};
 
 	return (
-		<ContextMenu key={branch.name}>
+		<ContextMenu>
 			<ContextMenuTrigger>
 				<NavLink
 					to={`branch/${branch.name}/commits`}
