@@ -30,11 +30,14 @@ export function BranchLayout() {
 	const context = useOutletContext<Path[]>();
 	const path = context.find((c) => c.uuid === pathId);
 	const [branches, setBranches] = useState<Branch[]>();
+	const [isLoadingBranches, setIsLoadingBranches] = useState(true);
 
 	const fetchBranches = async () => {
 		if (path) {
+			setIsLoadingBranches(true);
 			const allBranches = await getBranchList(path.path);
 			setBranches(allBranches);
+			setIsLoadingBranches(false);
 		}
 	};
 
@@ -56,6 +59,7 @@ export function BranchLayout() {
 							path={path}
 							branches={branches}
 							fetchBranches={fetchBranches}
+							isLoadingBranches={isLoadingBranches}
 						/>
 					)}
 				</ResizablePanel>

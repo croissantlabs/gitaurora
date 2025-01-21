@@ -20,6 +20,7 @@ interface Props {
 	path: Path;
 	branches: Branch[];
 	fetchBranches: () => void;
+	isLoadingBranches: boolean;
 }
 
 const mergeWithCurrentBranch = async (
@@ -37,9 +38,13 @@ const mergeWithCurrentBranch = async (
 	}
 };
 
-export const BranchInterface = ({ path, branches, fetchBranches }: Props) => {
+export const BranchInterface = ({
+	path,
+	branches,
+	fetchBranches,
+	isLoadingBranches,
+}: Props) => {
 	const navigate = useNavigate();
-	const [isLoading] = useState(false);
 	const [isCurrentlyCreatingBranch, setIsCurrentlyCreatingBranch] =
 		useState(false);
 	const [newBranchName, setNewBranchName] = useState("");
@@ -51,7 +56,7 @@ export const BranchInterface = ({ path, branches, fetchBranches }: Props) => {
 			await fetchBranches();
 			setIsCurrentlyCreatingBranch(false);
 			setNewBranchName("");
-			navigate(`/dashboard/path/${path.uuid}/branch/${branchName}`);
+			navigate(`/dashboard/path/${path.uuid}/branch/${branchName}/commits`);
 		} catch (error) {
 			console.error(error);
 		}
@@ -109,12 +114,12 @@ export const BranchInterface = ({ path, branches, fetchBranches }: Props) => {
 			)}
 			<ScrollArea className="h-full">
 				<div>
-					{isLoading && (
+					{isLoadingBranches && (
 						<div className="flex items-center justify-center h-16">
 							<LoaderCircle className="animate-spin" />
 						</div>
 					)}
-					{!branches?.length && !isLoading && (
+					{!branches?.length && !isLoadingBranches && (
 						<div className="text-center text-sm text-muted">
 							No branches found
 						</div>
