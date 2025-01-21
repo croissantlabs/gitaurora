@@ -33,7 +33,7 @@
 			"active": true,
 			"dialog": true,
 			"endpoints": [
-				"https://github.com/monsieursam/gitaurora-release/releases/latest/download/latest.json"
+				"https://github.com/croissantlabs/gitaurora-release/releases/latest/download/latest.json"
 			]
 		}
 	},
