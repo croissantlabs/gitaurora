@@ -150,7 +150,7 @@ jobs:
       - name: Checkout target repository
         uses: actions/checkout@v4
         with:
-          repository: croissantlabs/gitaurora-release
+          repository: croissantlabs/gitaurora-releases
           token: ${{ secrets.PAT_TOKEN }}
           path: target-repo
 
