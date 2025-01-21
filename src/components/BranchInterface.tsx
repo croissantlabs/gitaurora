@@ -39,7 +39,7 @@ const mergeWithCurrentBranch = async (
 
 export const BranchInterface = ({ path, branches, fetchBranches }: Props) => {
 	const navigate = useNavigate();
-	const [isLoading, setIsLoading] = useState(false);
+	const [isLoading] = useState(false);
 	const [isCurrentlyCreatingBranch, setIsCurrentlyCreatingBranch] =
 		useState(false);
 	const [newBranchName, setNewBranchName] = useState("");
