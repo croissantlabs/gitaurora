@@ -39,6 +39,7 @@ interface CurrentChangeDiffContext {
 export const CurrentChangeLayout = () => {
 	const context = useOutletContext<CurrentChangeDiffContext>();
 	const { path, fetchCommits } = context;
+	console.log(context);
 	const [changes, setChanges] = useState<FileChange[]>([]);
 
 	const fetchChanges = async () => {
