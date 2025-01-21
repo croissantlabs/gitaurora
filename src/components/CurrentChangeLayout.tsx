@@ -31,8 +31,14 @@ function compareTwoArrays(arr1: FileChange[], arr2: FileChange[]) {
 	return JSON.stringify(arr1) === JSON.stringify(arr2);
 }
 
+interface CurrentChangeDiffContext {
+	path: Path;
+	fetchCommits: () => void;
+}
+
 export const CurrentChangeLayout = () => {
-	const path = useOutletContext<Path>();
+	const context = useOutletContext<CurrentChangeDiffContext>();
+	const { path, fetchCommits } = context;
 	const [changes, setChanges] = useState<FileChange[]>([]);
 
 	const fetchChanges = async () => {
@@ -59,6 +65,7 @@ export const CurrentChangeLayout = () => {
 					changes={changes}
 					path={path}
 					fetchChanges={fetchChanges}
+					fetchCommits={fetchCommits}
 				/>
 			</ResizablePanel>
 			<ResizableHandle />

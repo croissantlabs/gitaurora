@@ -187,3 +187,12 @@ jobs:
             ./assets/gitaurora_aarch64.* \
             ./assets/gitaurora_x64.* \
             ./assets/latest.json
+      - name: Create GitHub Discussion
+        env:
+              GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+              gh discussion create \
+                --repo ${{ github.repository }} \
+                --category "Announcements" \
+                --title "New Release: v${{ steps.get_version.outputs.VERSION }}" \
+                --body "We're excited to announce the release of v${{ steps.get_version.outputs.VERSION }}! Check out the [release page](https://github.com/${{ github.repository }}/releases/tag/app-v${{ steps.get_version.outputs.VERSION }}) for more details and download links."

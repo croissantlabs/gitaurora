@@ -47,8 +47,13 @@ const getChangedFilesInCommit = async (
 	}
 };
 
+interface CommitDetailsLayoutContext {
+	path: Path;
+}
+
 export const CommitDetailsLayout = () => {
-	const path = useOutletContext<Path>();
+	const context = useOutletContext<CommitDetailsLayoutContext>();
+	const { path } = context;
 	const [commitDetails, setCommitDetails] = useState<Commit | null>(null);
 	const [files, setFiles] = useState<FileChange[]>([]);
 	const { commitId } = useParams();
@@ -90,7 +95,7 @@ export const CommitDetailsLayout = () => {
 				</ResizablePanel>
 				<ResizableHandle />
 				<ResizablePanel>
-					<Outlet context={{ path, files }} />
+					<Outlet context={path} />
 				</ResizablePanel>
 			</ResizablePanelGroup>
 		</div>

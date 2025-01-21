@@ -15,6 +15,12 @@ import { invoke } from "@tauri-apps/api/core";
 import { Check, GitBranch, LoaderCircle, Plus } from "lucide-react";
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "./ui/tooltip";
 
 interface Props {
 	path: Path;
@@ -152,6 +158,18 @@ export const BranchInterface = ({
 								>
 									<span>Merge with current branch</span>
 								</ContextMenuItem>
+								<TooltipProvider>
+									<Tooltip>
+										<TooltipTrigger asChild>
+											<ContextMenuItem disabled>
+												<span>Remove branch</span>
+											</ContextMenuItem>
+										</TooltipTrigger>
+										<TooltipContent>
+											<p>Not implemented yet</p>
+										</TooltipContent>
+									</Tooltip>
+								</TooltipProvider>
 							</ContextMenuContent>
 						)}
 					</ContextMenu>

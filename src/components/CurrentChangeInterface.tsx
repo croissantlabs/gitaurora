@@ -21,6 +21,7 @@ interface Props {
 	changes: FileChange[];
 	path: Path;
 	fetchChanges: () => void;
+	fetchCommits: () => void;
 }
 
 const pushCurrentBranch = async (directory: string): Promise<void> => {
@@ -55,6 +56,7 @@ export const CurrentChangeInterface = ({
 	changes,
 	path,
 	fetchChanges,
+	fetchCommits,
 }: Props) => {
 	const [selectedFiles, setSelectedFiles] = useState<string[]>(
 		changes.map((change) => change.path),
@@ -78,6 +80,7 @@ export const CurrentChangeInterface = ({
 			console.error("Error committing changes:", error);
 		}
 		await fetchChanges();
+		await fetchCommits();
 		setCommitMessage("");
 		setIsLoading(false);
 	};
