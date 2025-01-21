@@ -36,24 +36,24 @@ export const CommitHistoryLayout = () => {
 	const context = useOutletContext<CommitHistoryLayoutContext>();
 	const { path, branches } = context;
 	const { branchId } = useParams();
+	const [isLoadingCommits, setIsLoadingCommits] = useState(true);
 	const currentBranch = branches.find((branch) => branch.name === branchId);
 	const [commits, setCommits] = useState<Commit[]>([]);
 
+	const fetchCommits = async () => {
+		if (branchId) {
+			setIsLoadingCommits(true);
+			const commits = await getAllCommitsFromBranch(path.path, branchId);
+
+			setCommits(commits);
+			setIsLoadingCommits(false);
+		}
+	};
+
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
-		if (branchId) {
-			const fetchCommits = async () => {
-				const commits = await getAllCommitsFromBranch(path.path, branchId);
-
-				setCommits(commits);
-			};
-			fetchCommits();
-		}
+		fetchCommits();
 	}, [branchId]);
-
-	if (!branchId) {
-		return null;
-	}
 
 	return (
 		<ResizablePanelGroup direction="horizontal" className="flex-1 h-auto">
@@ -62,7 +62,11 @@ export const CommitHistoryLayout = () => {
 				defaultSize={20}
 			>
 				{currentBranch && (
-					<CommitHistoryInterface commits={commits} branch={currentBranch} />
+					<CommitHistoryInterface
+						commits={commits}
+						branch={currentBranch}
+						isLoadingCommits={isLoadingCommits}
+					/>
 				)}
 			</ResizablePanel>
 			<ResizableHandle />
