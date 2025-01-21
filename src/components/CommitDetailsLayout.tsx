@@ -95,7 +95,7 @@ export const CommitDetailsLayout = () => {
 				</ResizablePanel>
 				<ResizableHandle />
 				<ResizablePanel>
-					<Outlet context={path} />
+					<Outlet context={{ path, files }} />
 				</ResizablePanel>
 			</ResizablePanelGroup>
 		</div>

@@ -97,7 +97,7 @@ export const CommitChangeDiffContainer = () => {
 	const context = useOutletContext<CommitChangeDiffContext>();
 	const [fileDiff, setFile] = useState<string>();
 	const { path, files } = context;
-	const filename = files[Number(filenameId) || 0].path;
+	const filename = files?.[Number(filenameId) || 0]?.path;
 
 	const fetchCurrentChange = async () => {
 		setIsLoading(true);
