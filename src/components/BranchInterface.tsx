@@ -1,26 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { CardHeader, CardTitle } from "@/components/ui/card";
-import {
-	ContextMenu,
-	ContextMenuContent,
-	ContextMenuItem,
-	ContextMenuTrigger,
-} from "@/components/ui/context-menu";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Path } from "@/db/dexie";
 import { useGitCommand } from "@/hooks/useGitCommand";
 import type { Branch } from "@/types/git";
-import { invoke } from "@tauri-apps/api/core";
 import { Check, GitBranch, LoaderCircle, Plus } from "lucide-react";
 import { useState } from "react";
-import { NavLink, useNavigate } from "react-router";
-import {
-	Tooltip,
-	TooltipContent,
-	TooltipProvider,
-	TooltipTrigger,
-} from "./ui/tooltip";
+import { useNavigate } from "react-router";
+import { BranchNavigation } from "./BranchNavigation";
 
 interface Props {
 	path: Path;
@@ -28,21 +16,6 @@ interface Props {
 	fetchBranches: () => void;
 	isLoadingBranches: boolean;
 }
-
-const mergeWithCurrentBranch = async (
-	directory: string,
-	branchName: string,
-) => {
-	try {
-		await invoke("merge_with_current_branch", {
-			directory,
-			branchName,
-		});
-	} catch (error) {
-		console.error("Error committing changes:", error);
-		throw error;
-	}
-};
 
 export const BranchInterface = ({
 	path,
@@ -54,7 +27,7 @@ export const BranchInterface = ({
 	const [isCurrentlyCreatingBranch, setIsCurrentlyCreatingBranch] =
 		useState(false);
 	const [newBranchName, setNewBranchName] = useState("");
-	const { createBranch, switchBranch } = useGitCommand();
+	const { createBranch } = useGitCommand();
 
 	const createNewBranch = async (branchName: string) => {
 		try {
@@ -66,19 +39,6 @@ export const BranchInterface = ({
 		} catch (error) {
 			console.error(error);
 		}
-	};
-
-	const checkoutBranch = async (branchName: string) => {
-		try {
-			await switchBranch(path.path, branchName);
-			await fetchBranches();
-		} catch (error) {
-			console.error(error);
-		}
-	};
-
-	const onClickButtonMerge = async (branchName: string) => {
-		await mergeWithCurrentBranch(path.path, branchName);
 	};
 
 	return (
@@ -132,47 +92,12 @@ export const BranchInterface = ({
 					)}
 				</div>
 				{branches?.map((branch) => (
-					<ContextMenu key={branch.name}>
-						<ContextMenuTrigger>
-							<NavLink
-								to={`branch/${branch.name}/commits`}
-								onDoubleClick={() => checkoutBranch(branch.name)}
-							>
-								{({ isActive }) => (
-									<Button
-										variant="ghost"
-										className={`w-full justify-start gap-2 text-sm ${isActive ? "bg-blue-500" : ""}`}
-									>
-										{branch.is_head && (
-											<span className="h-2 w-2 rounded-full bg-green-500" />
-										)}
-										{branch.name}
-									</Button>
-								)}
-							</NavLink>
-						</ContextMenuTrigger>
-						{!branch.is_head && (
-							<ContextMenuContent className="w-64">
-								<ContextMenuItem
-									onClick={() => onClickButtonMerge(branch.name)}
-								>
-									<span>Merge with current branch</span>
-								</ContextMenuItem>
-								<TooltipProvider>
-									<Tooltip>
-										<TooltipTrigger asChild>
-											<ContextMenuItem disabled>
-												<span>Remove branch</span>
-											</ContextMenuItem>
-										</TooltipTrigger>
-										<TooltipContent>
-											<p>Not implemented yet</p>
-										</TooltipContent>
-									</Tooltip>
-								</TooltipProvider>
-							</ContextMenuContent>
-						)}
-					</ContextMenu>
+					<BranchNavigation
+						key={branch.name}
+						branch={branch}
+						fetchBranches={fetchBranches}
+						path={path}
+					/>
 				))}
 			</ScrollArea>
 		</div>
