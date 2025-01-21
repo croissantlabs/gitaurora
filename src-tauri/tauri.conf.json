@@ -1,6 +1,6 @@
 {
 	"$schema": "https://schema.tauri.app/config/2",
-	"productName": "gitaurora",
+	"productName": "GitAurora",
 	"version": "0.1.60",
 	"identifier": "com.gitaurora.app",
 	"build": {
