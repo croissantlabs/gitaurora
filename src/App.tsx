@@ -11,6 +11,7 @@ import { CommitLayout } from "./components/CommitLayout";
 import { CurrentChangeDiffContainer } from "./components/CurrentChangeDiff";
 import { CurrentChangeLayout } from "./components/CurrentChangeLayout";
 import SelectDirectoryView from "./components/SelectDirectoryView";
+
 import { getUpdate } from "./lib/utils";
 
 const router = createBrowserRouter([
