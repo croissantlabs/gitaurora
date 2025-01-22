@@ -60,6 +60,10 @@ export const BranchNavigation = ({ branch, path, fetchBranches }: Props) => {
 		await mergeWithCurrentBranch(path.path, branchName);
 	};
 
+	if (branch.is_remote) {
+		return null;
+	}
+
 	return (
 		<ContextMenu>
 			<ContextMenuTrigger>
