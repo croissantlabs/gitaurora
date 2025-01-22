@@ -158,9 +158,9 @@ jobs:
         run: |
             mkdir -p ./target-repo/assets
             cp ./assets/latest.json ./target-repo/assets/
-            cp ./assets/gitaurora_aarch64.* ./target-repo/assets/
-            cp ./assets/gitaurora_x64.* ./target-repo/assets/
-            cp ./assets/gitaurora_${{ steps.get_version.outputs.VERSION }}_* ./target-repo/assets/
+            cp ./assets/GitAurora_aarch64.* ./target-repo/assets/
+            cp ./assets/GitAurora_x64.* ./target-repo/assets/
+            cp ./assets/GitAurora_${{ steps.get_version.outputs.VERSION }}_* ./target-repo/assets/
             cd ./target-repo
             sed -i 's|https://github.com/croissantlabs/gitaurora|https://github.com/croissantlabs/gitaurora-releases|g' ./assets/latest.json
             git config user.name github-actions
@@ -183,7 +183,7 @@ jobs:
           gh release create app-v${{ steps.get_version.outputs.VERSION }} \
             --title "App v${{ steps.get_version.outputs.VERSION }}" \
             --notes "See the assets to download this version and install." \
-            ./assets/gitaurora_${{ steps.get_version.outputs.VERSION }}_* \
-            ./assets/gitaurora_aarch64.* \
-            ./assets/gitaurora_x64.* \
+            ./assets/GitAurora_${{ steps.get_version.outputs.VERSION }}_* \
+            ./assets/GitAurora_aarch64.* \
+            ./assets/GitAurora_x64.* \
             ./assets/latest.json
