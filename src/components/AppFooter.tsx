@@ -1,6 +1,7 @@
 import type { Path } from "@/db/dexie";
 import { useToast } from "@/hooks/use-toast";
 import { invoke } from "@tauri-apps/api/core";
+import { check } from "@tauri-apps/plugin-updater";
 import {
 	ArrowBigDown,
 	ArrowBigUp,
@@ -9,7 +10,7 @@ import {
 	LoaderPinwheel,
 	MergeIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ModeToggle } from "./mode-toggle";
 import { Button } from "./ui/button";
 import {
@@ -60,6 +61,8 @@ export const AppFooter = ({ path }: Props) => {
 	const [isLoadingPush, setIsLoadingPush] = useState(false);
 	const [isLoadingFetch, setIsLoadingFetch] = useState(false);
 	const [isLoadingPull, setIsLoadingPull] = useState(false);
+	const [isLoadingUpdate, setIsLoadingUpdate] = useState(false);
+	const [isUpdateAvailable, setIsUpdateAvailable] = useState(false);
 	const { toast } = useToast();
 
 	const onClickButtonPush = async () => {
@@ -93,6 +96,17 @@ export const AppFooter = ({ path }: Props) => {
 		await pull(path.path);
 		setIsLoadingPull(false);
 	};
+
+	const getUpdate = async () => {
+		setIsLoadingUpdate(true);
+		const update = await check();
+		setIsLoadingUpdate(false);
+		setIsUpdateAvailable(update !== null);
+	};
+
+	useEffect(() => {
+		getUpdate();
+	}, []);
 
 	return (
 		<footer className="flex items-center justify-between px-4 py-1 bg-card border-t border-b border-border">
@@ -186,6 +200,16 @@ export const AppFooter = ({ path }: Props) => {
 					</TooltipProvider>
 				</div>
 				<div className="flex space-x-4">
+					<Button variant="outline" size="sm">
+						{isLoadingUpdate ? (
+							<LoaderCircle className="animate-spin" />
+						) : (
+							"Update"
+						)}
+					</Button>
+					<Button variant="outline" size="sm">
+						Feedback
+					</Button>
 					<ModeToggle />
 				</div>
 			</div>
