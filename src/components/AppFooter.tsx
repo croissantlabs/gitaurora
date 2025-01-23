@@ -1,7 +1,7 @@
 import type { Path } from "@/db/dexie";
 import { useToast } from "@/hooks/use-toast";
 import { invoke } from "@tauri-apps/api/core";
-import { type Update, check } from "@tauri-apps/plugin-updater";
+import { check } from "@tauri-apps/plugin-updater";
 import {
 	ArrowBigDown,
 	ArrowBigUp,
@@ -225,13 +225,15 @@ export const AppFooter = ({ path }: Props) => {
 					</TooltipProvider>
 				</div>
 				<div className="flex space-x-4">
-					<Button variant="default" size="sm" onClick={setUpdate}>
-						{isUpdateAvailable ? (
-							"Download and install update"
-						) : (
-							<LoaderCircle className="animate-spin" />
-						)}
-					</Button>
+					{isUpdateAvailable && (
+						<Button variant="default" size="sm" onClick={setUpdate}>
+							{isLoadingUpdate ? (
+								<LoaderCircle className="animate-spin" />
+							) : (
+								"Download and install update"
+							)}
+						</Button>
+					)}
 					<Button variant="outline" size="sm">
 						Feedback
 					</Button>
