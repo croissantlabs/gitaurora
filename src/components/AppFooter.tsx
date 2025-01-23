@@ -123,9 +123,10 @@ export const AppFooter = ({ path }: Props) => {
 						break;
 				}
 			});
+		} else {
+			setIsUpdateAvailable(update !== null);
 		}
 		setIsLoadingUpdate(false);
-		setIsUpdateAvailable(update !== null);
 	};
 
 	const onClickButtonUpdate = async () => {
