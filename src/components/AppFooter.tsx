@@ -1,7 +1,7 @@
 import type { Path } from "@/db/dexie";
 import { useToast } from "@/hooks/use-toast";
 import { invoke } from "@tauri-apps/api/core";
-import { check } from "@tauri-apps/plugin-updater";
+import { type Update, check } from "@tauri-apps/plugin-updater";
 import {
 	ArrowBigDown,
 	ArrowBigUp,
@@ -62,7 +62,7 @@ export const AppFooter = ({ path }: Props) => {
 	const [isLoadingFetch, setIsLoadingFetch] = useState(false);
 	const [isLoadingPull, setIsLoadingPull] = useState(false);
 	const [isLoadingUpdate, setIsLoadingUpdate] = useState(false);
-	const [isUpdateAvailable, setIsUpdateAvailable] = useState(true);
+	const [isUpdateAvailable, setIsUpdateAvailable] = useState(false);
 	const { toast } = useToast();
 
 	const onClickButtonPush = async () => {
@@ -97,13 +97,13 @@ export const AppFooter = ({ path }: Props) => {
 		setIsLoadingPull(false);
 	};
 
-	const getUpdate = async () => {
+	const setUpdate = async () => {
 		setIsLoadingUpdate(true);
 		const update = await check();
 		if (update) {
 			let downloaded = 0;
 			let contentLength = 0;
-			await update?.download((event) => {
+			await update?.downloadAndInstall((event) => {
 				switch (event.event) {
 					case "Started":
 						contentLength = event.data.contentLength || 0;
@@ -123,9 +123,9 @@ export const AppFooter = ({ path }: Props) => {
 		setIsLoadingUpdate(false);
 	};
 
-	const onClickButtonUpdate = async () => {
+	const getUpdate = async () => {
 		const update = await check();
-		await update?.install();
+		setIsUpdateAvailable(update !== null);
 	};
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
@@ -225,15 +225,13 @@ export const AppFooter = ({ path }: Props) => {
 					</TooltipProvider>
 				</div>
 				<div className="flex space-x-4">
-					{isUpdateAvailable && (
-						<Button variant="default" size="sm" onClick={onClickButtonUpdate}>
-							{isLoadingUpdate ? (
-								<LoaderCircle className="animate-spin" />
-							) : (
-								"Update"
-							)}
-						</Button>
-					)}
+					<Button variant="default" size="sm" onClick={setUpdate}>
+						{isUpdateAvailable ? (
+							"Download and install update"
+						) : (
+							<LoaderCircle className="animate-spin" />
+						)}
+					</Button>
 					<Button variant="outline" size="sm">
 						Feedback
 					</Button>
