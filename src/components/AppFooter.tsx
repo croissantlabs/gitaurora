@@ -102,9 +102,13 @@ export const AppFooter = ({ path }: Props) => {
 		setIsLoadingUpdate(true);
 		const update = await check();
 		if (update) {
+			console.log(
+				`found update ${update.version} from ${update.date} with notes ${update.body}`,
+			);
 			let downloaded = 0;
 			let contentLength = 0;
-			await update?.downloadAndInstall((event) => {
+			// alternatively we could also call update.download() and update.install() separately
+			await update.downloadAndInstall((event) => {
 				switch (event.event) {
 					case "Started":
 						contentLength = event.data.contentLength || 0;
@@ -121,6 +125,8 @@ export const AppFooter = ({ path }: Props) => {
 						break;
 				}
 			});
+
+			console.log("update installed");
 			await relaunch();
 		} else {
 			setIsUpdateAvailable(false);
