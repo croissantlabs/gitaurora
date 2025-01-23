@@ -62,7 +62,7 @@ export const AppFooter = ({ path }: Props) => {
 	const [isLoadingFetch, setIsLoadingFetch] = useState(false);
 	const [isLoadingPull, setIsLoadingPull] = useState(false);
 	const [isLoadingUpdate, setIsLoadingUpdate] = useState(false);
-	const [isUpdateAvailable, setIsUpdateAvailable] = useState(false);
+	const [isUpdateAvailable, setIsUpdateAvailable] = useState(true);
 	const { toast } = useToast();
 
 	const onClickButtonPush = async () => {
@@ -107,9 +107,6 @@ export const AppFooter = ({ path }: Props) => {
 				switch (event.event) {
 					case "Started":
 						contentLength = event.data.contentLength || 0;
-						console.log(
-							`started downloading ${event.data.contentLength} bytes`,
-						);
 						break;
 					case "Progress":
 						downloaded += event.data.chunkLength;
@@ -121,7 +118,7 @@ export const AppFooter = ({ path }: Props) => {
 				}
 			});
 		} else {
-			setIsUpdateAvailable(update !== null);
+			setIsUpdateAvailable(false);
 		}
 		setIsLoadingUpdate(false);
 	};
