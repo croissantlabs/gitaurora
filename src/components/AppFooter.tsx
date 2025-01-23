@@ -1,6 +1,7 @@
 import type { Path } from "@/db/dexie";
 import { useToast } from "@/hooks/use-toast";
 import { invoke } from "@tauri-apps/api/core";
+import { relaunch } from "@tauri-apps/plugin-process";
 import { check } from "@tauri-apps/plugin-updater";
 import {
 	ArrowBigDown,
@@ -120,6 +121,7 @@ export const AppFooter = ({ path }: Props) => {
 						break;
 				}
 			});
+			await relaunch();
 		} else {
 			setIsUpdateAvailable(false);
 		}
@@ -229,7 +231,7 @@ export const AppFooter = ({ path }: Props) => {
 				</div>
 				<div className="flex space-x-4">
 					{isUpdateAvailable && (
-						<Button variant="default" size="sm" onClick={setUpdate}>
+						<Button variant="ghost" size="sm" onClick={setUpdate}>
 							{isLoadingUpdate ? (
 								<LoaderCircle className="animate-spin" />
 							) : (
