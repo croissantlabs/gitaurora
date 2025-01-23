@@ -101,9 +101,6 @@ export const AppFooter = ({ path }: Props) => {
 		setIsLoadingUpdate(true);
 		const update = await check();
 		if (update) {
-			console.log(
-				`found update ${update.version} from ${update.date} with notes ${update.body}`,
-			);
 			let downloaded = 0;
 			let contentLength = 0;
 			await update?.download((event) => {
