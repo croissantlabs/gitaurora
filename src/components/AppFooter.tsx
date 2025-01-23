@@ -110,7 +110,6 @@ export const AppFooter = ({ path }: Props) => {
 						break;
 					case "Progress":
 						downloaded += event.data.chunkLength;
-						console.log(`downloaded ${downloaded} from ${contentLength}`);
 						break;
 					case "Finished":
 						console.log("download finished");
