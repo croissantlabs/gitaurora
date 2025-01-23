@@ -239,9 +239,15 @@ export const AppFooter = ({ path }: Props) => {
 							)}
 						</Button>
 					)}
-					<Button variant="outline" size="sm">
-						Feedback
-					</Button>
+					<a
+						href="https://github.com/croissantlabs/gitaurora-releases/issues"
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						<Button variant="outline" size="sm">
+							Feedback
+						</Button>
+					</a>
 					<ModeToggle />
 				</div>
 			</div>

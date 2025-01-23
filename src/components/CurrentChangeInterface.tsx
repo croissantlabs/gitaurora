@@ -101,9 +101,18 @@ export const CurrentChangeInterface = ({
 		<div className="flex flex-col h-full">
 			<div className="bg-muted/50 px-2 flex items-center justify-between">
 				<h2 className="text-sm font-medium">{changes?.length} files changed</h2>
-				<Button size={"sm"} variant={"ghost"} disabled>
-					<Trash />
-				</Button>
+				<TooltipProvider>
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Button size={"sm"} variant={"ghost"} disabled>
+								<Trash />
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent>
+							<p>Discard Changes</p>
+						</TooltipContent>
+					</Tooltip>
+				</TooltipProvider>
 			</div>
 			<ScrollArea className="h-full">
 				<div className="flex flex-col p-2 gap-2">
