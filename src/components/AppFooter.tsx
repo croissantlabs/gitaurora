@@ -100,10 +100,40 @@ export const AppFooter = ({ path }: Props) => {
 	const getUpdate = async () => {
 		setIsLoadingUpdate(true);
 		const update = await check();
+		if (update) {
+			console.log(
+				`found update ${update.version} from ${update.date} with notes ${update.body}`,
+			);
+			let downloaded = 0;
+			let contentLength = 0;
+			await update?.download((event) => {
+				switch (event.event) {
+					case "Started":
+						contentLength = event.data.contentLength || 0;
+						console.log(
+							`started downloading ${event.data.contentLength} bytes`,
+						);
+						break;
+					case "Progress":
+						downloaded += event.data.chunkLength;
+						console.log(`downloaded ${downloaded} from ${contentLength}`);
+						break;
+					case "Finished":
+						console.log("download finished");
+						break;
+				}
+			});
+		}
 		setIsLoadingUpdate(false);
 		setIsUpdateAvailable(update !== null);
 	};
 
+	const onClickButtonUpdate = async () => {
+		const update = await check();
+		await update?.install();
+	};
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
 		getUpdate();
 	}, []);
@@ -200,13 +230,15 @@ export const AppFooter = ({ path }: Props) => {
 					</TooltipProvider>
 				</div>
 				<div className="flex space-x-4">
-					<Button variant="outline" size="sm">
-						{isLoadingUpdate ? (
-							<LoaderCircle className="animate-spin" />
-						) : (
-							"Update"
-						)}
-					</Button>
+					{isUpdateAvailable && (
+						<Button variant="default" size="sm" onClick={onClickButtonUpdate}>
+							{isLoadingUpdate ? (
+								<LoaderCircle className="animate-spin" />
+							) : (
+								"Update"
+							)}
+						</Button>
+					)}
 					<Button variant="outline" size="sm">
 						Feedback
 					</Button>

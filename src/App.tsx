@@ -1,7 +1,6 @@
 import "./App.css";
 import { BranchLayout } from "@/components/BranchLayout";
 import { ThemeProvider } from "@/components/theme-provider";
-import { useEffect } from "react";
 import { RouterProvider, createBrowserRouter } from "react-router";
 import AppLayout from "./components/AppLayout";
 import { CommitChangeDiffContainer } from "./components/CommitChangeDiff";
@@ -11,8 +10,6 @@ import { CommitLayout } from "./components/CommitLayout";
 import { CurrentChangeDiffContainer } from "./components/CurrentChangeDiff";
 import { CurrentChangeLayout } from "./components/CurrentChangeLayout";
 import SelectDirectoryView from "./components/SelectDirectoryView";
-
-import { getUpdate } from "./lib/utils";
 
 const router = createBrowserRouter([
 	{
@@ -66,10 +63,6 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-	useEffect(() => {
-		getUpdate();
-	}, []);
-
 	return (
 		<ThemeProvider>
 			<RouterProvider router={router} />
