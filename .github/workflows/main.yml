@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   bump-version-and-publish:
-    if: ${{ github.actor != 'github-actions[bot]' }} # Prevent recursion
+    if: ${{ github.actor != 'github-actions[bot]' }}
     permissions:
       contents: write
       actions: write
@@ -36,10 +36,9 @@ jobs:
       - name: Bump version
         id: bump_version
         run: |
-          # Increment version based on commit message or default to "patch"
           bump_type=$(git log -1 --pretty=%B | grep -Eo '(major|minor|patch)' || echo "patch")
           npx tauri-version@latest $bump_type --no-git --no-lock
-          echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
+          echo "VERSION=$(node -p \"require('./package.json').version\")" >> $GITHUB_ENV
 
           cd src-tauri && cargo update -p gitaurora
 
@@ -53,7 +52,7 @@ jobs:
 
       - name: Continue Workflow Dispatch
         uses: actions/github-script@v6
-        if: ${{ github.event_name == 'workflow_dispatch' }} # Avoid triggering on push
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         with:
           script: |
             github.rest.actions.createWorkflowDispatch({
@@ -66,51 +65,17 @@ jobs:
               },
             })
 
-  build-macos:
-    needs: bump-version-and-publish
-    strategy:
-      matrix:
-        include:
-          - args: '--target aarch64-apple-darwin'
-            arch: 'silicon'
-          - args: '--target x86_64-apple-darwin'
-            arch: 'intel'
-    runs-on: macos-latest
-    env:
-      APPLE_ID: ${{ secrets.APPLE_ID }}
-      APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-    steps:
-      - name: Import Apple Developer Certificate
-        env:
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-        run: |
-          echo $APPLE_CERTIFICATE | base64 --decode > certificate.p12
-          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-          security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
-          security find-identity -v -p codesigning build.keychain
-      - name: Verify Certificate
-        run: |
-          CERT_INFO=$(security find-identity -v -p codesigning build.keychain | grep "Apple Development")
-          CERT_ID=$(echo "$CERT_INFO" | awk -F'"' '{print $2}')
-          echo "CERT_ID=$CERT_ID" >> $GITHUB_ENV
-          echo "Certificate imported."
-
   publish-tauri:
-    needs: build-macos
+    needs: bump-version-and-publish
     permissions:
       contents: write
     strategy:
       fail-fast: false
       matrix:
         include:
-          - platform: 'macos-latest' # for Arm based macs (M1 and above).
+          - platform: 'macos-latest'
             args: '--target aarch64-apple-darwin'
-          - platform: 'macos-latest' # for Intel based macs.
+          - platform: 'macos-latest'
             args: '--target x86_64-apple-darwin'
           - platform: 'ubuntu-22.04'
             args: ''
@@ -148,17 +113,28 @@ jobs:
 
       - name: Get version
         id: get_version
-        run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+        run: echo "VERSION=$(node -p \"require('./package.json').version\")" >> $GITHUB_OUTPUT
 
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+
+          # These environment variables are needed to code sign and notarize your app on macOS[1][2].
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           APPLE_SIGNING_IDENTITY: ${{ env.CERT_ID }}
+
+          # Provide Apple Developer credentials to notarize the app[2].
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+          # If you use a Tauri private key for signing on other platforms, include them as well[1].
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+
         with:
           tagName: app-v__VERSION__
           releaseName: 'App v__VERSION__'
@@ -176,7 +152,7 @@ jobs:
 
       - name: Get version
         id: get_version
-        run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+        run: echo "VERSION=$(node -p \"require('./package.json').version\")" >> $GITHUB_OUTPUT
 
       - name: Download release assets
         env:
@@ -205,7 +181,6 @@ jobs:
             git add .
             git commit -m "Release app-v${{ steps.get_version.outputs.VERSION }}"
             git push
-
 
       - name: List assets
         run: |
