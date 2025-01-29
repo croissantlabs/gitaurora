@@ -124,18 +124,18 @@ jobs:
           echo $APPLE_API_KEY | base64 --decode > $RUNNER_TEMP/key.p8
           echo "APPLE_API_KEY_PATH=$RUNNER_TEMP/key.p8" >> $GITHUB_ENV
 
-      # - name: Setup Apple certificates (macOS only)
-      #   if: matrix.platform == 'macos-latest'
-      #   env:
-      #     APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-      #     APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-      #   run: |
-      #     echo $APPLE_CERTIFICATE | base64 --decode > certificate.p12
-      #     security create-keychain -p "$APPLE_CERTIFICATE_PASSWORD" build.keychain
-      #     security default-keychain -s build.keychain
-      #     security unlock-keychain -p "$APPLE_CERTIFICATE_PASSWORD" build.keychain
-      #     security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
-      #     security set-key-partition-list -S apple-tool:,apple: -s -k "$APPLE_CERTIFICATE_PASSWORD" build.keychain
+      - name: Setup Apple certificates (macOS only)
+        if: matrix.platform == 'macos-latest'
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          echo $APPLE_CERTIFICATE | base64 --decode > certificate.p12
+          security create-keychain -p "$APPLE_CERTIFICATE_PASSWORD" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$APPLE_CERTIFICATE_PASSWORD" build.keychain
+          security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$APPLE_CERTIFICATE_PASSWORD" build.keychain
 
       - uses: tauri-apps/tauri-action@v0
         env:
