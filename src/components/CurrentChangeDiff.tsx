@@ -27,7 +27,6 @@ export const CurrentChangeDiff = ({ filename, diff }: Props) => {
 		}
 	};
 
-	console.log(diff);
 	// a function to get the filename extension
 	const parts = filename.split(".");
 	const extension = parts[parts.length - 1];
