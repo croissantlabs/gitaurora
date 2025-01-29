@@ -159,8 +159,6 @@ export const useGitCommand = () => {
 				currentPath: directory,
 			});
 
-			console.log(change);
-
 			return change;
 		} catch (error) {
 			console.error("Error getting current change:", error);
