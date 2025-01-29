@@ -1434,7 +1434,7 @@ dependencies = [
 
 [[package]]
 name = "gitaurora"
-version = "0.1.78"
+version = "0.1.79"
 dependencies = [
  "git2",
  "openssl",
