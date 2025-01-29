@@ -104,7 +104,6 @@ export const CurrentChangeDiffContainer = () => {
 			setIsLoading(true);
 			const diff = await getDiffOfFile(path.path, filename);
 
-			console.log(diff);
 			setDiff(diff);
 			setIsLoading(false);
 		}
