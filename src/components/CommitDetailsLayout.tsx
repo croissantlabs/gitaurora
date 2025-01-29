@@ -63,7 +63,6 @@ export const CommitDetailsLayout = () => {
 			const commit = await getChangeFromCommit(path.path, commitId);
 			const changes = await getChangedFilesInCommit(path.path, commitId);
 
-			console.log(changes);
 			setFiles(changes);
 			setCommitDetails(commit);
 		}
