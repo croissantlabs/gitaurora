@@ -165,7 +165,7 @@ jobs:
           args: ${{ matrix.args }}
 
   publish-to-other-repo:
-    needs: build-macos
+    needs: publish-tauri
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source repository
