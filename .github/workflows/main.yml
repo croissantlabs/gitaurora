@@ -116,6 +116,14 @@ jobs:
         id: get_version
         run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
+      - name: Setup API Key
+        if: matrix.platform == 'macos-latest'
+        env:
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+        run: |
+          echo $APPLE_API_KEY | base64 --decode > $RUNNER_TEMP/key.p8
+          echo "APPLE_API_KEY_PATH=$RUNNER_TEMP/key.p8" >> $GITHUB_ENV
+
       # - name: Setup Apple certificates (macOS only)
       #   if: matrix.platform == 'macos-latest'
       #   env:
@@ -139,7 +147,7 @@ jobs:
           # Notarization variables (API Key method)
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
           APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
-          APPLE_API_KEY_PATH: ${{ secrets.APPLE_API_KEY_PATH }}
+          APPLE_API_KEY_PATH: ${{ env.APPLE_API_KEY_PATH }}
           # Alternative Apple ID method (if not using API keys)
           # APPLE_ID: ${{ secrets.APPLE_ID }}
           # APPLE_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
