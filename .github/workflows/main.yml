@@ -101,7 +101,7 @@ jobs:
           echo "Certificate imported."
 
   publish-tauri:
-    needs: bump-version-and-publish
+    needs: build-macos
     permissions:
       contents: write
     strategy:
