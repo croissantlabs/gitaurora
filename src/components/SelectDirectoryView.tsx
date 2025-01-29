@@ -17,7 +17,6 @@ const SelectDirectoryView = () => {
 			});
 
 			if (selected) {
-				console.log(selected);
 				const path = await savePath(selected);
 				console.log(path);
 				navigate(`/dashboard/path/${path?.uuid}`);
