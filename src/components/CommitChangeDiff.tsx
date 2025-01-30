@@ -27,7 +27,7 @@ export const CommitChangeDiff = ({ fileDiff, filename }: Props) => {
 		}
 	};
 
-	const parts = filename.split(".");
+	const parts = filename?.split(".");
 	const extension = parts[parts.length - 1];
 
 	const diffFile = new DiffFile("", "", "", "", [fileDiff], extension);
@@ -120,11 +120,6 @@ export const CommitChangeDiffContainer = () => {
 				<LoaderCircle className="animate-spin" />
 			</div>
 		);
-	}
-
-	console.log(filename);
-	if (!filename) {
-		return <div />
 	}
 
 	return <CommitChangeDiff fileDiff={fileDiff} filename={filename} />;
