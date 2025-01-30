@@ -52,6 +52,21 @@ const commitChanges = async (
 	}
 };
 
+const discardChanges = async (
+	directory: string,
+	files: string[],
+): Promise<void> => {
+	try {
+		await invoke("discard_changes", {
+			directory,
+			files,
+		});
+	} catch (error) {
+		console.error("Error discarding changes:", error);
+		throw error;
+	}
+};
+
 export const CurrentChangeInterface = ({
 	changes,
 	path,
@@ -66,6 +81,29 @@ export const CurrentChangeInterface = ({
 	const [commitMessage, setCommitMessage] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
 	const [isLoadingPush, setIsLoadingPush] = useState(false);
+	const [isLoadingDiscard, setIsLoadingDiscard] = useState(false);
+
+	const onClickButtonDiscard = async () => {
+		setIsLoadingDiscard(true);
+		try {
+			await discardChanges(path.path, selectedFiles);
+			toast({
+				title: "Changes Discarded",
+				description: "Changes have been discarded successfully",
+				duration: 3000,
+			});
+			await fetchChanges();
+		} catch (error) {
+			console.error("Error discarding changes:", error);
+			toast({
+				title: "Error",
+				description: "Failed to discard changes",
+				variant: "destructive",
+				duration: 3000,
+			});
+		}
+		setIsLoadingDiscard(false);
+	};
 
 	const onClickButtonCommit = async () => {
 		setIsLoading(true);
@@ -104,8 +142,17 @@ export const CurrentChangeInterface = ({
 				<TooltipProvider>
 					<Tooltip>
 						<TooltipTrigger asChild>
-							<Button size={"sm"} variant={"ghost"} disabled>
-								<Trash />
+							<Button
+								size={"sm"}
+								variant={"ghost"}
+								disabled={isLoadingDiscard}
+								onClick={onClickButtonDiscard}
+							>
+								{isLoadingDiscard ? (
+									<LoaderCircle className="animate-spin" />
+								) : (
+									<Trash />
+								)}
 							</Button>
 						</TooltipTrigger>
 						<TooltipContent>

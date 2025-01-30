@@ -64,6 +64,8 @@ export const AppFooter = ({ path }: Props) => {
 	const [isLoadingPull, setIsLoadingPull] = useState(false);
 	const [isLoadingUpdate, setIsLoadingUpdate] = useState(false);
 	const [isUpdateAvailable, setIsUpdateAvailable] = useState(false);
+	const [isDownloadFinished, setIsDownloadFinished] = useState(false);
+
 	const { toast } = useToast();
 
 	const onClickButtonPush = async () => {
@@ -127,7 +129,7 @@ export const AppFooter = ({ path }: Props) => {
 			});
 
 			console.log("update installed");
-			await relaunch();
+			setIsDownloadFinished(true);
 		} else {
 			setIsUpdateAvailable(false);
 		}
@@ -236,7 +238,12 @@ export const AppFooter = ({ path }: Props) => {
 					</TooltipProvider>
 				</div>
 				<div className="flex space-x-4">
-					{isUpdateAvailable && (
+					{isDownloadFinished && <Button onClick={async () => {
+						await relaunch();
+					}}>
+						Relaunch
+					</Button>}
+					{!isDownloadFinished && isUpdateAvailable && (
 						<Button variant="ghost" size="sm" onClick={setUpdate}>
 							{isLoadingUpdate ? (
 								<LoaderCircle className="animate-spin" />
