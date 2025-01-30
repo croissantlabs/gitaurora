@@ -122,6 +122,7 @@ export const CommitChangeDiffContainer = () => {
 		);
 	}
 
+	console.log(filename);
 	if (!filename) {
 		return <div />
 	}
