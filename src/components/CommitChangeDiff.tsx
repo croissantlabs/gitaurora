@@ -122,5 +122,9 @@ export const CommitChangeDiffContainer = () => {
 		);
 	}
 
+	if (!filename) {
+		return <div />
+	}
+
 	return <CommitChangeDiff fileDiff={fileDiff} filename={filename} />;
 };
