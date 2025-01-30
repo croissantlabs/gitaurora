@@ -12,9 +12,9 @@ use gitfunction::get_diff_of_file;
 
 #[tauri::command]
 async fn discard_changes(directory: String) -> Result<(), String> {
-    // Git checkout -- <files> to discard changes
     let _output = Command::new("git")
-        .arg("reset")
+        .arg("checkout")
+        .arg("--")
         .current_dir(directory)
         .output()
         .expect("Failed to execute git command");
