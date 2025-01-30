@@ -31,6 +31,8 @@ export const CommitChangeDiff = ({ fileDiff, filename }: Props) => {
 		return null;
 	}
 
+	console.log(filename);
+
 	const parts = filename?.split(".");
 	const extension = parts[parts.length - 1];
 
