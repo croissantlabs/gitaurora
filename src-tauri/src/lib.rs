@@ -11,24 +11,15 @@ use gitfunction::get_all_changed_files;
 use gitfunction::get_diff_of_file;
 
 #[tauri::command]
-async fn discard_changes(directory: String, files: Vec<String>) -> Result<(), String> {
+async fn discard_changes(directory: String) -> Result<(), String> {
     // Git checkout -- <files> to discard changes
-    let mut checkout_command = Command::new("git");
-    checkout_command.current_dir(directory);
-    checkout_command.arg("checkout");
-    checkout_command.arg("--");
+    let _output = Command::new("git")
+        .arg("reset")
+        .current_dir(directory)
+        .output()
+        .expect("Failed to execute git command");
 
-    for file in files {
-        checkout_command.arg(file);
-    }
-
-    let checkout_output = checkout_command.output().map_err(|e| e.to_string())?;
-
-    if !checkout_output.status.success() {
-        return Err(String::from_utf8_lossy(&checkout_output.stderr).to_string());
-    }
-
-    Ok(())
+        Ok(())
 }
 
 #[tauri::command]
@@ -606,6 +597,7 @@ pub fn run() {
             git_add_and_commit,
             merge_with_current_branch,
             fetch,
+            discard_changes,
             pull
         ])
         .run(tauri::generate_context!())

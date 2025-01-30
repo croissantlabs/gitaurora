@@ -54,12 +54,10 @@ const commitChanges = async (
 
 const discardChanges = async (
 	directory: string,
-	files: string[],
 ): Promise<void> => {
 	try {
 		await invoke("discard_changes", {
 			directory,
-			files,
 		});
 	} catch (error) {
 		console.error("Error discarding changes:", error);
@@ -86,7 +84,7 @@ export const CurrentChangeInterface = ({
 	const onClickButtonDiscard = async () => {
 		setIsLoadingDiscard(true);
 		try {
-			await discardChanges(path.path, selectedFiles);
+			await discardChanges(path.path);
 			toast({
 				title: "Changes Discarded",
 				description: "Changes have been discarded successfully",
