@@ -116,7 +116,11 @@ export const CurrentChangeDiffContainer = () => {
 		getDiff();
 	}, [filenameId]);
 
-	if (isLoading || !diff || !filename) {
+	if (!diff || !filename) {
+		return null;
+	}
+
+	if (isLoading) {
 		return (
 			<div className="flex items-center justify-center h-full">
 				<LoaderCircle className="animate-spin h-8 w-8" />
