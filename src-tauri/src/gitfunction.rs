@@ -214,6 +214,24 @@ pub async fn get_all_changed_files(directory: String) -> Result<Vec<FileChange>,
 
 use std::process::Command;
 use std::str::from_utf8;
+
+#[tauri::command]
+pub async fn delete_branch(current_path: String, branch_name: String) -> String {
+    let output = Command::new("git")
+        .arg("branch")
+        .arg("-d")
+        .arg(&branch_name)
+        .current_dir(&current_path)
+        .output()
+        .expect("Failed to execute git command");
+
+    let message = from_utf8(&output.stdout)
+        .expect("Failed to convert output to UTF-8")
+        .to_string();
+
+    message
+}
+
 // a function to get the diff of a file added, changed, or deleted
 #[tauri::command]
 pub async fn get_diff_of_file(directory: String, filename: String) -> String {

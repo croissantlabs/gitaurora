@@ -16,6 +16,21 @@ interface Props {
 	fetchBranches: () => void;
 }
 
+const deleteBranch = async (
+	directory: string,
+	branchName: string,
+): Promise<void> => {
+	try {
+		await invoke("delete_branch", {
+			currentPath: directory,
+			branchName,
+		});
+	} catch (error) {
+		console.error("Error deleting Git branch:", error);
+		throw error;
+	}
+};
+
 const switchBranch = async (
 	directory: string,
 	branchName: string,
@@ -60,6 +75,15 @@ export const BranchNavigation = ({ branch, path, fetchBranches }: Props) => {
 		await mergeWithCurrentBranch(path.path, branchName);
 	};
 
+	const onClickButtonDelete = async (branchName: string) => {
+		try {
+			await deleteBranch(path.path, branchName);
+			await fetchBranches();
+		} catch (error) {
+			console.error(error);
+		}
+	};
+
 	if (branch.is_remote) {
 		return null;
 	}
@@ -89,7 +113,7 @@ export const BranchNavigation = ({ branch, path, fetchBranches }: Props) => {
 					<ContextMenuItem onClick={() => onClickButtonMerge(branch.name)}>
 						<span>Merge with current branch</span>
 					</ContextMenuItem>
-					<ContextMenuItem disabled>
+					<ContextMenuItem onClick={() => onClickButtonDelete(branch.name)}>
 						<span>Remove branch</span>
 					</ContextMenuItem>
 				</ContextMenuContent>
