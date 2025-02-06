@@ -1,7 +1,6 @@
 import "./App.css";
 import { BranchLayout } from "@/components/BranchLayout";
 import { ThemeProvider } from "@/components/theme-provider";
-import { Effect, EffectState, type Effects, getCurrentWindow } from "@tauri-apps/api/window";
 import { RouterProvider, createBrowserRouter } from "react-router";
 import AppLayout from "./components/AppLayout";
 import { CommitChangeDiffContainer } from "./components/CommitChangeDiff";
