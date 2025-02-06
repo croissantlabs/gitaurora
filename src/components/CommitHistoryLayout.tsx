@@ -10,7 +10,6 @@ import {
 	ResizablePanelGroup,
 } from "./ui/resizable";
 import { CurrentChangeInterface } from "./CurrentChangeInterface";
-import { CurrentChangeLayout } from "./CurrentChangeLayout";
 
 const getAllCommitsFromBranch = async (
 	directory: string,

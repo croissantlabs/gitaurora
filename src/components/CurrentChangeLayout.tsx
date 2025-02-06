@@ -1,16 +1,12 @@
 import type { Path } from "@/db/dexie";
 
 import { useEffect, useState } from "react";
-import { Outlet, useOutletContext } from "react-router";
+import { useOutletContext } from "react-router";
 import { CurrentChangeInterface } from "./CurrentChangeInterface";
 
 import type { FileChange } from "@/types/git";
 import { invoke } from "@tauri-apps/api/core";
-import {
-	ResizableHandle,
-	ResizablePanel,
-	ResizablePanelGroup,
-} from "./ui/resizable";
+
 
 const getCurrentChangeFile = async (
 	directory: string,
