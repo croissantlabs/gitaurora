@@ -187,7 +187,7 @@ export const CurrentChangeInterface = ({
 				</div>
 			</ScrollArea>
 
-			<div className="flex flex-col p-2">
+			<div className="flex flex-col p-4">
 				<div>
 					<Input
 						placeholder="Commit message"
