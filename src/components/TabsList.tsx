@@ -40,8 +40,8 @@ export default function TabList({ paths }: Props) {
 
 	return (
 		<div className="w-screen">
-			<ScrollArea className="border-b border-border whitespace-nowrap">
-				<div className="flex items-center gap-2 p-2 border-b">
+			<ScrollArea className="whitespace-nowrap">
+				<div className="flex items-center gap-2 p-2">
 					{paths?.map((path: Path) => (
 						<div key={path.uuid} className="flex items-center">
 							<NavLink
