@@ -1,5 +1,5 @@
 import type { Path } from "@/db/dexie";
-import type { Branch, Commit } from "@/types/git";
+import type { Branch, Commit, FileChange } from "@/types/git";
 import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router";
@@ -9,6 +9,8 @@ import {
 	ResizablePanel,
 	ResizablePanelGroup,
 } from "./ui/resizable";
+import { CurrentChangeInterface } from "./CurrentChangeInterface";
+import { CurrentChangeLayout } from "./CurrentChangeLayout";
 
 const getAllCommitsFromBranch = async (
 	directory: string,
@@ -26,6 +28,25 @@ const getAllCommitsFromBranch = async (
 		throw error;
 	}
 };
+
+const getCurrentChangeFile = async (
+	directory: string,
+): Promise<FileChange[]> => {
+	try {
+		const change: FileChange[] = await invoke("get_all_changed_files", {
+			directory,
+		});
+
+		return change;
+	} catch (error) {
+		console.error("Error getting current change:", error);
+		throw error;
+	}
+};
+
+function compareTwoArrays(arr1: FileChange[], arr2: FileChange[]) {
+	return JSON.stringify(arr1) === JSON.stringify(arr2);
+}
 
 interface CommitHistoryLayoutContext {
 	path: Path;
@@ -55,23 +76,52 @@ export const CommitHistoryLayout = () => {
 		fetchCommits();
 	}, [branchId]);
 
+	const [changes, setChanges] = useState<FileChange[]>([]);
+
+	const fetchChanges = async () => {
+		const uncommittedChanges = await getCurrentChangeFile(path.path);
+		if (!compareTwoArrays(uncommittedChanges, changes)) {
+			setChanges(uncommittedChanges);
+		}
+	};
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+	useEffect(() => {
+		if (path.path) {
+			fetchChanges();
+			const intervalId = setInterval(fetchChanges, 2000);
+
+			return () => clearInterval(intervalId);
+		}
+	}, []);
+
 	return (
 		<ResizablePanelGroup direction="horizontal" className="flex-1 h-auto">
 			<ResizablePanel
 				className=" border-r border-border h-full flex flex-col"
 				defaultSize={20}
 			>
-				{currentBranch && (
-					<CommitHistoryInterface
-						commits={commits}
-						branch={currentBranch}
-						isLoadingCommits={isLoadingCommits}
-					/>
-				)}
+				<ResizablePanelGroup direction="vertical">
+					{currentBranch?.is_head && (
+						<ResizablePanel>
+							<CurrentChangeLayout />
+						</ResizablePanel>
+					)}
+					<ResizableHandle />
+					<ResizablePanel>
+						{currentBranch && (
+							<CommitHistoryInterface
+								commits={commits}
+								branch={currentBranch}
+								isLoadingCommits={isLoadingCommits}
+							/>
+						)}
+					</ResizablePanel>
+				</ResizablePanelGroup>
 			</ResizablePanel>
 			<ResizableHandle />
 			<ResizablePanel>
-				<Outlet context={{ path, fetchCommits }} />
+				{changes && <Outlet context={{ path, fetchCommits, changes }} />}
 			</ResizablePanel>
 		</ResizablePanelGroup>
 	);

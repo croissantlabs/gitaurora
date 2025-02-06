@@ -16,6 +16,7 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "./ui/tooltip";
+import { Input } from "./ui/input";
 
 interface Props {
 	changes: FileChange[];
@@ -188,12 +189,15 @@ export const CurrentChangeInterface = ({
 				</div>
 			</ScrollArea>
 
-			<CardFooter className="flex flex-col items-stretch gap-4 pt-4">
-				<Textarea
-					placeholder="Commit message"
-					value={commitMessage}
-					onChange={(e) => setCommitMessage(e.target.value)}
-				/>
+			<div className="flex flex-col p-2">
+				<div>
+					<Input
+						placeholder="Commit message"
+						value={commitMessage}
+						onChange={(e) => setCommitMessage(e.target.value)}
+						className="my-2"
+					/>
+				</div>
 				<div className="flex items-center space-x-2">
 					<Button
 						onClick={onClickButtonCommit}
@@ -226,7 +230,7 @@ export const CurrentChangeInterface = ({
 						</Tooltip>
 					</TooltipProvider>
 				</div>
-			</CardFooter>
+			</div>
 		</div>
 	);
 };

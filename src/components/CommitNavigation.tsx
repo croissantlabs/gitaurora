@@ -35,10 +35,6 @@ export const CommitNavigation = ({ commit }: Props) => {
 					<GitCommit className="mr-2" size={18} />
 					<div>
 						<div className="font-semibold">{commit.message}</div>
-						<div className="text-sm text-muted-foreground">
-							{commit.author} -{" "}
-							{new Date(commit.timestamp * 1000).toLocaleString()}
-						</div>
 					</div>
 				</NavLink>
 			</ContextMenuTrigger>

@@ -87,7 +87,7 @@ const getDiffOfFile = async (
 };
 
 interface CurrentChangeDiffContext {
-	fileChanges: FileChange[];
+	changes: FileChange[];
 	path: Path;
 }
 
@@ -95,9 +95,11 @@ export const CurrentChangeDiffContainer = () => {
 	const context = useOutletContext<CurrentChangeDiffContext>();
 	const { filenameId } = useParams();
 	const [diff, setDiff] = useState<string>("");
-	const { fileChanges, path } = context;
+	const { changes, path } = context;
 	const [isLoading, setIsLoading] = useState(true);
-	const filename = fileChanges?.[Number(filenameId)]?.path;
+
+	console.log(changes);
+	const filename = changes?.[Number(filenameId)]?.path;
 
 	const getDiff = async () => {
 		if (filenameId && path?.path) {

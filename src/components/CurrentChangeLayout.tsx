@@ -60,23 +60,11 @@ export const CurrentChangeLayout = () => {
 	}, []);
 
 	return (
-		<ResizablePanelGroup direction="horizontal">
-			<ResizablePanel className="overflow-hidden" defaultSize={25}>
-				<CurrentChangeInterface
-					changes={changes}
-					path={path}
-					fetchChanges={fetchChanges}
-					fetchCommits={fetchCommits}
-				/>
-			</ResizablePanel>
-			<ResizableHandle />
-			<ResizablePanel>
-				{changes.length ? (
-					<Outlet context={{ fileChanges: changes, path }} />
-				) : (
-					<div />
-				)}
-			</ResizablePanel>
-		</ResizablePanelGroup>
+		<CurrentChangeInterface
+			changes={changes}
+			path={path}
+			fetchChanges={fetchChanges}
+			fetchCommits={fetchCommits}
+		/>
 	);
 };

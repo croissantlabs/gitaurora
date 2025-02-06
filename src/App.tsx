@@ -1,6 +1,7 @@
 import "./App.css";
 import { BranchLayout } from "@/components/BranchLayout";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Effect, EffectState, type Effects, getCurrentWindow } from "@tauri-apps/api/window";
 import { RouterProvider, createBrowserRouter } from "react-router";
 import AppLayout from "./components/AppLayout";
 import { CommitChangeDiffContainer } from "./components/CommitChangeDiff";
@@ -10,6 +11,8 @@ import { CommitLayout } from "./components/CommitLayout";
 import { CurrentChangeDiffContainer } from "./components/CurrentChangeDiff";
 import { CurrentChangeLayout } from "./components/CurrentChangeLayout";
 import SelectDirectoryView from "./components/SelectDirectoryView";
+
+
 
 const router = createBrowserRouter([
 	{
@@ -41,6 +44,10 @@ const router = createBrowserRouter([
 												element: <CommitChangeDiffContainer />,
 											},
 										],
+									},
+									{
+										path: "filename/:filenameId",
+										element: <CurrentChangeDiffContainer />,
 									},
 									{
 										path: "current_change",
