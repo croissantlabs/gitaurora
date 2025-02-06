@@ -104,7 +104,8 @@ export const CommitHistoryLayout = () => {
 				<ResizablePanelGroup direction="vertical">
 					{currentBranch?.is_head && (
 						<ResizablePanel>
-							<CurrentChangeLayout />
+							<CurrentChangeInterface
+								changes={changes} fetchChanges={fetchChanges} fetchCommits={fetchCommits} path={path} />
 						</ResizablePanel>
 					)}
 					<ResizableHandle />
