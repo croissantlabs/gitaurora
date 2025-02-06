@@ -1,4 +1,3 @@
-import { Textarea } from "@/components/ui/textarea";
 import type { Path } from "@/db/dexie";
 import { useToast } from "@/hooks/use-toast";
 import type { FileChange } from "@/types/git";
@@ -7,7 +6,6 @@ import { ArrowBigUp, LoaderCircle, Trash } from "lucide-react";
 import { useState } from "react";
 import { NavLink } from "react-router";
 import { Button } from "./ui/button";
-import { CardFooter } from "./ui/card";
 import { Checkbox } from "./ui/checkbox";
 import { ScrollArea } from "./ui/scroll-area";
 import {

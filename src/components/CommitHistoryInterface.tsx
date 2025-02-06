@@ -1,8 +1,6 @@
 import type { Branch, Commit } from "@/types/git";
-import { File, LoaderCircle } from "lucide-react";
-import { NavLink } from "react-router";
+import { LoaderCircle } from "lucide-react";
 import { CommitNavigation } from "./CommitNavigation";
-import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
 
 interface Props {
